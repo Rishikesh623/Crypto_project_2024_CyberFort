@@ -32,9 +32,9 @@ const DashBoard = () => {
         setSelectedOption(option);
         if (option === 'create-quiz') {
             navigate('/create-quiz');
-        } else if (option == 'quiz-history') {
+        } else if (option === 'quiz-history') {
 
-        } else if(option == 'give-quiz'){
+        } else if(option === 'give-quiz'){
             setModalOpen(true);
         }else if (option === 'logout') {
             // handle logout logic here
