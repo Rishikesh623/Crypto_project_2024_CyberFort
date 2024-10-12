@@ -25,40 +25,46 @@ const register = async (req, res) => {
 
         // send the token back as an HttpOnly cookie (secure for production)
         res.cookie('token', token, { httpOnly: true, secure: true });
-        res.status(201).json({ message: 'User registered successfully' });
+        res.status(201).json({ name, email });
 
     } catch (error) {
         res.status(500).json({ message: 'Server error' });
     }
 };
 
-const login = async (req,res)=>{
-    const { email, password } = req.body;
+const login = async (req, res) => {
+    const { email, password, rememberMe } = req.body;
 
     try {
-        //find the user by email
         const user = await userModel.findOne({ email });
         if (!user) {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
-        //check if the password is correct
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
+        // set the token expiration based on "Remember Me"
+        const tokenExpiry = rememberMe ? '7d' : '1h'; // 7 days if "Remember Me" is checked, 1 hour if not
+
         // generate a JWT token
-        const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: tokenExpiry });
 
-        // send the token back as an HttpOnly cookie (secure for production)
-        res.cookie('token', token, { httpOnly: true, secure: true });
-        res.status(200).json({ message: 'Login successful' });
+        // send the token as an HttpOnly cookie
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: false, // set to true in production with HTTPS
+            maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : 1 * 60 * 60 * 1000 // 7 days or 1 hour in milliseconds
+        });
 
+        res.status(200).json({ name: user.name, email: user.email });
     } catch (error) {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
 
 // Profile fetch API
 const getProfile = async (req, res) => {
@@ -92,7 +98,7 @@ const editProfile = async (req, res) => {
             { $set: updateData }, // Use req.body directly
             { new: true } // Return the updated document
         );
-        console.log(updatedUser);
+        // console.log(updatedUser);
         if (!updatedUser) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -104,6 +110,44 @@ const editProfile = async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
+const changePassword = async (req, res) => {
+    const { oldPassword, newPassword } = req.body;
+    
+    try {
+        const _id = req.user._id;  // get the user ID from the authenticated user
+        // find the user by ID
+        const user = await userModel.findById(_id);
+        
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        
+        // check if the old password is correct
+        // console.log(oldPassword);
+        const isMatch = await bcrypt.compare(oldPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Old password is incorrect' });
+        }
+        
+        // hash the new password and update it
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+
+        // save the updated user
+        await user.save();
+
+        res.status(200).json({ message: 'Password updated successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
 
 
-module.exports = {login,register,getProfile,editProfile};
+// logout function
+const logout = async (req, res) => {
+    res.clearCookie('token'); //clears the cookie
+    return res.status(200).json({ message: "Logged out successfully" });
+}
+
+
+module.exports = {login,register,logout,getProfile,editProfile,logout,changePassword};

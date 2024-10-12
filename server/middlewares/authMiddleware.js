@@ -3,7 +3,7 @@ const JWT_SECRET = 'your_jwt_secret';
 
 const authMiddleware = (req, res, next) => {
     const cookieHeader = req.headers.cookie; // get cookie from the headers
-
+    // console.log(cookieHeader);
     if (!cookieHeader) {
         return res.status(401).json({ message: 'No token, authorization denied' });
     }

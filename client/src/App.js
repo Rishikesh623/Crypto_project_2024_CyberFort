@@ -10,12 +10,15 @@ import { QuizProvider } from './contexts/QuizContext';
 import { Routes, Route } from 'react-router-dom';
 import DashBoard from './pages/DashBoard.jsx';
 import QuizMonitor from './pages/QuizMonitor.jsx';
+import { useUserContext } from './contexts/UserContext.js';
 
 function App() {
+  const {user} = useUserContext();
   return (
+
     <QuizProvider>
       <Routes>
-        <Route element=<Home /> path="/" />
+        <Route element={user?.name ? <DashBoard/> : <Home />} path="/" />
         <Route element=<Signin /> path="/signin" />
         <Route element=<Signup /> path="/signup" />
         <Route element=<Quiz /> path="/quiz/:quizId" />
@@ -23,7 +26,7 @@ function App() {
         <Route element=<DashBoard/> path="/dashboard" />
         <Route element=<QuizView/> path="/dashboard/view-quiz" />
         <Route element=<QuizResult/> path="/dashboard/quiz-result" />
-        <Route element=<QuizMonitor/> path="/dashboard/quiz-montior"/>
+        <Route element=<QuizMonitor/> path="/dashboard/quiz-monitor"/>
       </Routes>
     </QuizProvider>
 

@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { Button, Box, Checkbox, FormControlLabel, IconButton, InputAdornment, Link, Stack, TextField } from "@mui/material";
 import { motion } from "framer-motion";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import { useUserContext } from "../contexts/UserContext";
 
 let easing = [0.6, -0.05, 0.01, 0.99];
 const animate = {
@@ -17,6 +18,8 @@ const animate = {
 };
 
 const LoginForm = () => {
+    const navigate = useNavigate();
+    const {login} = useUserContext();
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
         email: "",
@@ -36,11 +39,18 @@ const LoginForm = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         setIsSubmitting(true);
-
+        
         // Simulating a submission process
-        setTimeout(() => {
-            console.log("Submitted form data: ", formData);
+        setTimeout(async () => {
+            const res = await login(formData.email,formData.password,formData.remember);
             setIsSubmitting(false);
+            if(res.error){
+                alert(res?.message);
+                return ;
+            }
+            // console.log("Submitted form data: ", formData);
+            
+            navigate('../dashboard');
         }, 2000);
     };
 

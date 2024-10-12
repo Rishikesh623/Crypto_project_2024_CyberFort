@@ -1,23 +1,25 @@
 import React, { useState } from 'react';
-import { Box, AppBar, Toolbar, Typography, Drawer, List, ListItem, ListItemText, CssBaseline, Modal, TextField, Button } from '@mui/material';
-import { Outlet, Link, Navigate, useNavigate } from 'react-router-dom';
+import { Box, AppBar, Toolbar, Typography, Drawer, List, ListItem, ListItemText, CssBaseline, Modal, TextField, Button} from '@mui/material';
+import { Outlet, Link, useNavigate } from 'react-router-dom';
+import { useUserContext } from '../contexts/UserContext';
 import logo from '../assets/logo.png';
 import Profile from '../components/Profile';
 import QuizHistory from './QuizHistory';
-import QuizResult from './QuizResult';
+// import QuizResult from './QuizResult';
 
 const drawerWidth = 240;
 
 
 
 const DashBoard = () => {
-    const [username, setUsername] = React.useState('Guest'); // Replace with actual user data
     const [selectedOption, setSelectedOption] = useState("profile");
     const [isModalOpen, setModalOpen] = useState(false);
     const [quizId, setQuizId] = useState('');
+    const {user,logout} = useUserContext();
     const navigate = useNavigate();
 
     const renderContent = () => {
+        // console.log(user);
         switch (selectedOption) {
             case 'profile':
                 return <Profile/>;
@@ -69,7 +71,7 @@ const DashBoard = () => {
                         FortiQuiz
                     </Typography>
                     <Typography variant="subtitle1" sx={{ marginLeft: 2 }}>
-                        {username}
+                        {user?.name ? user.name : "Guest"}
                     </Typography>
                 </Toolbar>
             </AppBar>
@@ -89,7 +91,7 @@ const DashBoard = () => {
             >
                 <Toolbar /> {/* To push the content below the AppBar */}
                 <List>
-                    <ListItem button onClick={()=>{handleOptionSelect('profile')}} key={'profile'}
+                    <ListItem button="true" onClick={()=>{handleOptionSelect('profile')}} key={'profile'}
                         sx={{
                             '&:hover': {
                                 backgroundColor: 'rgba(255, 255, 255, 0.2)', // Slight white overlay on hover
@@ -97,7 +99,7 @@ const DashBoard = () => {
                         }}>
                         <ListItemText primary={'Profile'} sx={{ color: 'white' }} />
                     </ListItem>
-                    <ListItem button component={Link} to={'/create-quiz'} key={'create-quiz'}
+                    <ListItem button="true" component={Link} to={'/create-quiz'} key={'create-quiz'}
                         sx={{
                             '&:hover': {
                                 backgroundColor: 'rgba(255, 255, 255, 0.2)', // Slight white overlay on hover
@@ -105,7 +107,7 @@ const DashBoard = () => {
                         }}>
                         <ListItemText primary={'Create Quiz'} sx={{ color: 'white' }} />
                     </ListItem>
-                    <ListItem button onClick={()=>{handleOptionSelect('give-quiz')}} key={'give-quiz'}
+                    <ListItem button="true" onClick={()=>{handleOptionSelect('give-quiz')}} key={'give-quiz'}
                         sx={{
                             '&:hover': {
                                 backgroundColor: 'rgba(255, 255, 255, 0.2)', // Slight white overlay on hover
@@ -113,13 +115,21 @@ const DashBoard = () => {
                         }}>
                         <ListItemText primary={'Give Quiz'} sx={{ color: 'white' }} />
                     </ListItem>
-                    <ListItem button onClick={()=>{handleOptionSelect('quiz-history')}} key={'quiz-history'}
+                    <ListItem button="true" onClick={()=>{handleOptionSelect('quiz-history')}} key={'quiz-history'}
                         sx={{
                             '&:hover': {
                                 backgroundColor: 'rgba(255, 255, 255, 0.2)', // Slight white overlay on hover
                             },
                         }}>
                         <ListItemText primary={'Quiz History'} sx={{ color: 'white' }} />
+                    </ListItem>
+                    <ListItem button="true" onClick={()=>{logout()}} key={'logout'}
+                        sx={{
+                            '&:hover': {
+                                backgroundColor: 'rgba(255, 255, 255, 0.2)', // Slight white overlay on hover
+                            },
+                        }}>
+                        <ListItemText primary={'Logout'} sx={{ color: 'white' }} />
                     </ListItem>
 
                 </List>

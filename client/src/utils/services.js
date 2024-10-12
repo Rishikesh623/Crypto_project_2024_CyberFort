@@ -4,6 +4,7 @@ export const postRequest = async (url,body) => {
     body = JSON.stringify(body);
     const res = await fetch(`http://localhost:5000${url}`,{
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type" : "application/json"
         },
@@ -29,7 +30,9 @@ export const postRequest = async (url,body) => {
 
 
 export const getRequest = async (url) => {
-    const response = await fetch(`http://localhost:5000${url}`) 
+    const response = await fetch(`http://localhost:5000${url}`, {
+        credentials: 'include' // ensure cookies are sent with the request
+    });
 
     const data = await response.json();
 
@@ -53,6 +56,7 @@ export const patchRequest = async (url,body) => {
     body = JSON.stringify(body);
     const res = await fetch(`http://localhost:5000${url}`,{
         method: "PATCH",
+        credentials: "include",
         headers: {
             "Content-Type" : "application/json"
         },

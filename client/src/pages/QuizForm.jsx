@@ -1,15 +1,20 @@
 import React, { useState, useRef } from 'react';
-import {Container,Typography,TextField,Button,Paper,Grid,IconButton,} from '@mui/material';
+import { Container, Typography, TextField, Button, Paper, Grid, IconButton } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { useNavigate } from 'react-router-dom';
+import {useQuiz} from '../contexts/QuizContext';
 
-const QuizCreationPage = () => {
+
+const QuizForm = () => {
     const [quizTitle, setQuizTitle] = useState('');
     const [quizDescription, setQuizDescription] = useState('');
     const [questions, setQuestions] = useState([{ question: '', options: [''] }]);
-    const lastQuestionRef = useRef(null); // Ref to track the last question
+    const [startTime, setStartTime] = useState('');
+    const [endTime, setEndTime] = useState('');
+    const lastQuestionRef = useRef(null);
     const navigate = useNavigate();
+    const {createQuiz} = useQuiz();
 
     const handleQuizTitleChange = (event) => {
         setQuizTitle(event.target.value);
@@ -35,7 +40,7 @@ const QuizCreationPage = () => {
         setQuestions([...questions, { question: '', options: [''] }]);
         setTimeout(() => {
             lastQuestionRef.current.scrollIntoView({ behavior: 'smooth' });
-        }, 0); // Scroll to the last question after it is rendered
+        }, 0);
     };
 
     const removeQuestion = (index) => {
@@ -49,26 +54,43 @@ const QuizCreationPage = () => {
         setQuestions(newQuestions);
     };
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
         // Handle quiz submission (e.g., send data to backend)
-        console.log({ quizTitle, quizDescription, questions });
-        alert("Quiz created successFully");
-        navigate(-1);
+        const quizData = {
+            title: quizTitle,
+            description: quizDescription,
+            questions: questions.map((q,index) => ({
+                _id:index+1,
+                question: q.question,
+                options: q.options,
+                correct_option: q.options[0], // Set the correct option to the first option
+            })),
+            start_time: startTime,
+            end_time: endTime,
+        };
+        const res = createQuiz(quizData);
+        if(!res.error){
+            alert("Quiz created successfully");
+            navigate("/dashboard/quiz-monitor")
+        }else{
+            alert("Error occurred");
+        }
+        // navigate(-1);
     };
 
     return (
         <Container
             maxWidth="100%"
             style={{
-                background: 'linear-gradient(to right, #ff7e5f, #feb47b)', // Gradient background for the window
-                minHeight: '100vh', // Ensure full height of the viewport
-                display: 'flex', // Center the content
-                justifyContent: 'center', // Center horizontally
-                alignItems: 'center', // Center vertically
+                background: 'linear-gradient(to right, #ff7e5f, #feb47b)',
+                minHeight: '100vh',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
             }}
         >
-            <Paper elevation={3} style={{ maxWidth: '600px', padding: '20px', backgroundColor: 'white' }}> {/* White background for the form */}
+            <Paper elevation={3} style={{ maxWidth: '600px', padding: '20px', backgroundColor: 'white' }}>
                 <Typography variant="h4" gutterBottom>
                     Create a New Quiz
                 </Typography>
@@ -97,7 +119,7 @@ const QuizCreationPage = () => {
                         <Paper
                             key={index}
                             style={{ padding: '16px', marginBottom: '16px' }}
-                            ref={index === questions.length - 1 ? lastQuestionRef : null} // Assign ref to the last question
+                            ref={index === questions.length - 1 ? lastQuestionRef : null}
                         >
                             <Grid container spacing={2}>
                                 <Grid item xs={12}>
@@ -105,7 +127,7 @@ const QuizCreationPage = () => {
                                         label={`Question ${index + 1}`}
                                         variant="outlined"
                                         fullWidth
-                                        value={question.text}
+                                        value={question.question}
                                         onChange={(event) => handleQuestionChange(index, event)}
                                         required
                                     />
@@ -117,7 +139,7 @@ const QuizCreationPage = () => {
                                 {question.options.map((option, optionIndex) => (
                                     <Grid item xs={12} key={optionIndex}>
                                         <TextField
-                                            label={`Option ${optionIndex + 1}`}
+                                            label={`Option ${optionIndex + 1} ${optionIndex === 0 ? '(Correct Answer)' : ''}`}
                                             variant="outlined"
                                             fullWidth
                                             value={option}
@@ -148,6 +170,28 @@ const QuizCreationPage = () => {
                         Add Question
                     </Button>
                     <br />
+                    <TextField
+                        label="Start Time"
+                        type="datetime-local"
+                        variant="outlined"
+                        fullWidth
+                        value={startTime}
+                        onChange={(e) => setStartTime(e.target.value)}
+                        margin="normal"
+                        required
+                        InputLabelProps={{shrink:true}}
+                    />
+                    <TextField
+                        label="End Time"
+                        type="datetime-local"
+                        variant="outlined"
+                        fullWidth
+                        value={endTime}
+                        onChange={(e) => setEndTime(e.target.value)}
+                        margin="normal"
+                        required
+                        InputLabelProps={{shrink:true}}
+                    />
                     <Button variant="contained" color="primary" type="submit" style={{ marginTop: '16px' }}>
                         Create Quiz
                     </Button>
@@ -157,4 +201,4 @@ const QuizCreationPage = () => {
     );
 };
 
-export default QuizCreationPage;
+export default QuizForm;

@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useState } from 'react';
-
+import {postRequest,getRequest,patchRequest} from '../utils/services';
 // Create the QuizContext
 const QuizContext = createContext();
 
 // Provider component
 export const QuizProvider = ({ children }) => {
+    const [quiz,setQuiz] = useState({});
     const [questions] = useState([
         {
             question: "What is the capital of France?",
@@ -34,8 +35,15 @@ export const QuizProvider = ({ children }) => {
         }));
     };
 
+    const createQuiz = async (quizData) => {
+        const response = await postRequest('/create-quiz',quizData);
+        if (!response.error) {
+            setQuiz(response.quiz);
+        }
+        return response;
+    }
     return (
-        <QuizContext.Provider value={{ questions, answers, selectOption }}>
+        <QuizContext.Provider value={{ questions, answers, selectOption,createQuiz }}>
             {children}
         </QuizContext.Provider>
     );

@@ -1,12 +1,19 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const userRoutes = require('./routes/userRoutes.js');
+const quizRoutes = require('./routes/quizRoutes.js');
+const cors = require("cors");
 const cookieParser = require('cookie-parser');
 
 const app = express();
 
+app.use(cors({
+    origin: 'http://localhost:3000', // allow requests only from this origin
+    credentials: true,               // allow cookies and credentials
+})); 
 app.use(express.json());
 app.use(userRoutes);
+app.use(quizRoutes);
 app.use(cookieParser());
 
 

@@ -1,30 +1,55 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { postRequest, getRequest, patchRequest } from '../utils/services';
+import { useNavigate } from 'react-router-dom';
 
-// Create the context
+//create the context
 const UserContext = createContext();
 
-// Custom hook to use the UserContext
+//custom hook to use the UserContext
 export const useUserContext = () => {
     return useContext(UserContext);
 };
 
-// UserProvider component
+//UserProvider component 
 export const UserProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    const navigate = useNavigate();
 
-    // Function to fetch user profile
-    const fetchUserProfile = async () => {
-        const response = await getRequest('/user/profile');
+    useEffect (()=>{
+        const getUserProfile = async ()=>{
+            const response = await getRequest('/user/profile');
+            if (!response.error) {
+                // console.log(response);
+                setUser(response);
+            }
+            return response;
+        };
+
+        getUserProfile();
+        
+    },[]);
+
+    //function to handle user sign up
+    const register = async (name,email, password) => {
+        const response = await postRequest('/user/register', { name,email, password });
         if (!response.error) {
-            setUser(response);
+            setUser(response.quiz);
+        }
+        return response;
+    };
+
+    //function to change user password
+    const changeUserPassword = async (oldPassword,newPassword) => {
+        const response = await patchRequest('/user/change-password',{oldPassword,newPassword});
+        if (!response.error) {
+            alert("Password changes successfully.")
         }
         return response;
     };
 
     // Function to edit user profile
     const editUserProfile = async (updatedData) => {
-        const response = await patchRequest('/user/profile', updatedData);
+        const response = await patchRequest('/user/profile/edit', updatedData);
         if (!response.error) {
             setUser((prevUser) => ({ ...prevUser, ...updatedData }));
         }
@@ -32,22 +57,29 @@ export const UserProvider = ({ children }) => {
     };
 
     // Function to handle user login
-    const login = async (email, password) => {
-        const response = await postRequest('/user/login', { email, password });
+    const login = async (email, password,rememberMe) => {
+        const response = await postRequest('/user/login', { email, password,rememberMe });
         if (!response.error) {
             setUser(response);
         }
         return response;
     };
 
-    // Function to handle user logout
+    // function to handle user logout
     const logout = async () => {
-        // Implement logout logic here
+        //clear token cookie by setting it to an empty value and expiry in the past
+        const response = await postRequest('/user/logout');
+        if (!response.error) {
+            alert("Logged Out successfully");
+        }else{
+            alert(response?.message);
+        }
         setUser(null);
+        navigate("/");
     };
-
+    
     return (
-        <UserContext.Provider value={{ user, fetchUserProfile, editUserProfile, login, logout }}>
+        <UserContext.Provider value={{ user, editUserProfile, login,register, changeUserPassword,logout }}>
             {children}
         </UserContext.Provider>
     );
