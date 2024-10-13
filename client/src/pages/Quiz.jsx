@@ -1,6 +1,7 @@
 import { Box, Button, Typography, Radio, RadioGroup, FormControlLabel, FormControl, FormLabel } from '@mui/material';
 import { useState } from 'react';
 import { useQuiz } from '../contexts/QuizContext';
+import { useUserContext } from '../contexts/UserContext';
 import { useNavigate } from 'react-router-dom';
 
 function QuizHeader({ id, name, quizAccessCode }) {
@@ -45,7 +46,10 @@ function Pagination({ totalQuestions, currentQuestion, setCurrentQuestion }) {
 function Quiz() {
     const [currentQuestion, setCurrentQuestion] = useState(1);
     const [selectedOptions, setSelectedOptions] = useState({});
-    const { questions, answers, selectOption } = useQuiz();
+    
+    const {user} = useUserContext();
+    const { quiz } = useQuiz();
+    const questions = quiz.questions;
 
     const handleOptionChange = (event) => {
         const newSelectedOptions = { ...selectedOptions, [currentQuestion]: event.target.value };
@@ -54,7 +58,7 @@ function Quiz() {
 
     return (
         <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-            <QuizHeader id="123" name="John Doe" quizAccessCode="ABC123" />
+            <QuizHeader id="123" name={user.name} quizAccessCode={quiz._id} />
             <Pagination totalQuestions={questions.length} currentQuestion={currentQuestion} setCurrentQuestion={setCurrentQuestion} />
             
             <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', p: 4, mx: 'auto', background: '#ffffff', borderRadius: '8px', border: '2px solid #ddd', borderBottom: '4px solid #ff7e5f', boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)', maxWidth: '800px', width: '100%', textAlign: 'center' }}>

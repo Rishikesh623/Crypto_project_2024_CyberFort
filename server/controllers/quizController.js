@@ -47,11 +47,27 @@ const createQuiz = async (req, res) => {
 
 // get Quiz
 const getQuiz = async (req, res) => {
+
     try {
-        const quizzes = await Quiz.find({ created_by: req.user._id });
-        res.status(200).json(quizzes);
+        const quiz = await quizModel.findById(req.params.quizId);
+        // console.log(quiz);
+        res.status(200).json(quiz);
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+//get crated qui zhistory(sumarized)
+const getCreatedQuizHistory = async (req, res) => {
+    try {
+        const quizzes = await quizModel.find(
+            { created_by: req.user._id }, // Fetch quizzes created by the user
+            { id : 1,title: 1, createdAt: 1 } // Project only required fields
+        ).sort({ createdAt: -1 }); // Sort by the creation date, newest first
+        
+        res.status(200).json(quizzes);
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to fetch quiz history', error: error.message });
     }
 };
 
@@ -88,11 +104,11 @@ const deleteQuiz = async (req, res) => {
             return res.status(404).json({ message: 'Quiz not found or unauthorized' });
         }
 
-        await quiz.remove();
+        await quiz.deleteOne();
         res.status(200).json({ message: 'Quiz deleted successfully' });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
 
-module.exports = { createQuiz, getQuiz, updateQuiz, deleteQuiz };
+module.exports = { createQuiz, getQuiz,getCreatedQuizHistory, updateQuiz, deleteQuiz };

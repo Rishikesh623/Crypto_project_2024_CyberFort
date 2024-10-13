@@ -5,6 +5,7 @@ const QuizContext = createContext();
 
 // Provider component
 export const QuizProvider = ({ children }) => {
+    const [createdQuizzes,setCreatedQuizzes] = useState([]);
     const [quiz,setQuiz] = useState({});
     const [questions] = useState([
         {
@@ -42,8 +43,32 @@ export const QuizProvider = ({ children }) => {
         }
         return response;
     }
+
+    const getQuiz = async (quizId) =>{
+        
+        const response = await getRequest(`/get-quiz/${quizId}`);
+        console.log(response);
+
+        if (!response?.error) {
+            setQuiz(response);
+        }
+
+        return response;
+    }
+    const getCreatedQuizHistory = async () =>{
+        const response = await getRequest('/get-created-quiz-history');
+
+        if (!response.error) {
+            // console.log(response);
+            setCreatedQuizzes(response);
+        }
+
+        return response;
+
+    }
+
     return (
-        <QuizContext.Provider value={{ questions, answers, selectOption,createQuiz }}>
+        <QuizContext.Provider value={{ questions, answers,quiz,createdQuizzes ,getQuiz,getCreatedQuizHistory,selectOption,createQuiz }}>
             {children}
         </QuizContext.Provider>
     );

@@ -5,6 +5,7 @@ import { useUserContext } from '../contexts/UserContext';
 import logo from '../assets/logo.png';
 import Profile from '../components/Profile';
 import QuizHistory from './QuizHistory';
+import { useQuiz } from '../contexts/QuizContext';
 // import QuizResult from './QuizResult';
 
 const drawerWidth = 240;
@@ -15,7 +16,10 @@ const DashBoard = () => {
     const [selectedOption, setSelectedOption] = useState("profile");
     const [isModalOpen, setModalOpen] = useState(false);
     const [quizId, setQuizId] = useState('');
+
     const {user,logout} = useUserContext();
+    const {getCreatedQuizHistory,getQuiz} = useQuiz();
+
     const navigate = useNavigate();
 
     const renderContent = () => {
@@ -35,7 +39,7 @@ const DashBoard = () => {
         if (option === 'create-quiz') {
             navigate('/create-quiz');
         } else if (option === 'quiz-history') {
-
+            getCreatedQuizHistory();
         } else if(option === 'give-quiz'){
             setModalOpen(true);
         }else if (option === 'logout') {
@@ -43,14 +47,19 @@ const DashBoard = () => {
         }
     };
 
-    const handleQuizAccessCodeSubmit = (e) => {
+    const handleQuizAccessCodeSubmit = async (e) => {
         e.preventDefault();
-        // if (quizId && name && id) {
-            // Redirect to quiz page after form submission
-            navigate(`/quiz/${quizId}`);
-            setModalOpen(false);
-        // }
+        const res = await getQuiz(quizId);
+        if(!res || res?.error ){
+            if(!res){
+                alert("Wrong access code . Plzz enter again ")
+            }else
+                alert(res.error);
+            return ;
+        }
+        navigate(`/quiz/${quizId}`);
     };
+
     return (
         <div style={{ display: 'flex' }}>
             <CssBaseline />
