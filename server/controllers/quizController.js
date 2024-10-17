@@ -1,10 +1,11 @@
 const quizModel = require('../models/QuizModel'); // Update path as necessary
+const resultModel = require('../models/ResultModel');
 const AccessKey = require('../models/AccessKey'); // Import your AccessKey model
 
 
 // create Quiz
 const createQuiz = async (req, res) => {
-    
+
     // fetch the current access key
     try {
         const accessKeyDocument = await AccessKey.findOne();
@@ -15,8 +16,8 @@ const createQuiz = async (req, res) => {
             accessKeyDocument = await AccessKey.findOne();
 
         }
-        
-        
+
+
         // Get the current key and increment it
         const currentAccessKey = accessKeyDocument.currentKey;
 
@@ -33,7 +34,7 @@ const createQuiz = async (req, res) => {
 
         // console.log(newQuiz);
         await newQuiz.save();
-        
+
         // Increment the key manually & save
         let incrementedKey = (parseInt(currentAccessKey) + 1).toString().padStart(4, '0');
         await AccessKey.updateOne({}, { currentKey: incrementedKey });
@@ -62,9 +63,9 @@ const getCreatedQuizHistory = async (req, res) => {
     try {
         const quizzes = await quizModel.find(
             { created_by: req.user._id }, // Fetch quizzes created by the user
-            { id : 1,title: 1, createdAt: 1 } // Project only required fields
+            { id: 1, title: 1, createdAt: 1 } // Project only required fields
         ).sort({ createdAt: -1 }); // Sort by the creation date, newest first
-        
+
         res.status(200).json(quizzes);
     } catch (error) {
         res.status(500).json({ message: 'Failed to fetch quiz history', error: error.message });
@@ -111,4 +112,57 @@ const deleteQuiz = async (req, res) => {
     }
 };
 
-module.exports = { createQuiz, getQuiz,getCreatedQuizHistory, updateQuiz, deleteQuiz };
+
+//submit Quiz Results
+const submitQuiz = async (req, res) => {
+    const { quizId, selectedOptions } = req.body;
+
+    try {
+        //fetch the quiz with questions and correct answers
+        const quiz = await quizModel.findById(quizId);
+        if (!quiz) {
+            return res.status(404).json({ message: 'Quiz not found' });
+        }
+
+        let totalCorrect = 0;
+        const totalQuestions = quiz.questions.length;
+
+        //calculate total correct answers
+        Object.keys(selectedOptions).forEach(question_id => {
+            const selectedOption = selectedOptions[question_id];
+
+            //find the corresponding question in the quiz
+            const question = quiz.questions.find(q => q._id.toString() === question_id);
+
+
+            //check if the selected option matches the correct option
+            if (question && question.correct_option === selectedOption) {
+                totalCorrect += 1;
+            }
+        });
+
+        // store the result
+        const result = new resultModel({
+            quiz_id: quizId,
+            user_id: req.user._id,
+            selected_options: selectedOptions,
+            total_correct: totalCorrect,
+            total_questions: totalQuestions
+        });
+
+        await result.save();
+
+        // add the user to the participants array in the quiz
+        // quiz.participants.push(req.user._id);
+        quiz.participants = quiz.participants || [];
+        quiz.participants.push(req.user._id);
+        // console.log(quiz);
+        await quiz.save();
+        res.status(201).json({ message: 'Quiz submitted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+
+module.exports = { createQuiz, getQuiz, getCreatedQuizHistory, updateQuiz, deleteQuiz, submitQuiz };

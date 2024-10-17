@@ -67,8 +67,12 @@ export const QuizProvider = ({ children }) => {
 
     }
 
+    const submitQuiz = async (info) =>{
+        const response = await postRequest('/submit-quiz',info);
+        return response;
+    }
     return (
-        <QuizContext.Provider value={{ questions, answers,quiz,createdQuizzes ,getQuiz,getCreatedQuizHistory,selectOption,createQuiz }}>
+        <QuizContext.Provider value={{ questions, answers,quiz,createdQuizzes ,getQuiz,getCreatedQuizHistory,selectOption,createQuiz,submitQuiz }}>
             {children}
         </QuizContext.Provider>
     );

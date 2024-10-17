@@ -18,7 +18,7 @@ const DashBoard = () => {
     const [quizId, setQuizId] = useState('');
 
     const {user,logout} = useUserContext();
-    const {getCreatedQuizHistory,getQuiz} = useQuiz();
+    const {quiz,getCreatedQuizHistory,getQuiz} = useQuiz();
 
     const navigate = useNavigate();
 
@@ -57,6 +57,7 @@ const DashBoard = () => {
                 alert(res.error);
             return ;
         }
+       
         navigate(`/quiz/${quizId}`);
     };
 

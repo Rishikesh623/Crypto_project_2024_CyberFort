@@ -15,7 +15,8 @@ const questionSchema = new mongoose.Schema({
     correct_option: { 
         type: String, 
         required: true 
-    }
+    },
+    
 });
 
 const quizSchema = new mongoose.Schema({
@@ -44,6 +45,8 @@ const quizSchema = new mongoose.Schema({
         type: Date,
         required:true
     }
+    ,
+    participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }]
 },
 {
     timestamps: true
