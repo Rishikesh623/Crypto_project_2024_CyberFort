@@ -24,8 +24,10 @@ function App() {
         <Route element=<Quiz /> path="/quiz/:quizId" />
         <Route element=<QuizForm /> path="/create-quiz" />
         <Route element=<DashBoard/> path="/dashboard" />
-        <Route element=<QuizView/> path="/dashboard/view-quiz" />
-        <Route element=<QuizResult/> path="/dashboard/quiz-result" />
+        <Route element=<DashBoard selectedOption="profile" /> path="/dashboard/profile" />
+        <Route element=<DashBoard selectedOption="quiz-history" /> path="/dashboard/quiz-history" />
+        <Route element=<QuizView/> path="/quiz/view-quiz" />
+        <Route element=<DashBoard selectedOption="quiz-result" /> path="/dashboard/quiz-history/quiz-result" />
         <Route element=<QuizMonitor/> path="/dashboard/quiz-monitor"/>
       </Routes>
     </QuizProvider>

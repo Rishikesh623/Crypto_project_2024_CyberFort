@@ -46,7 +46,7 @@ const quizSchema = new mongoose.Schema({
         required:true
     }
     ,
-    participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }]
+    participants: [{ type: String, ref: 'User', default: [] }]
 },
 {
     timestamps: true

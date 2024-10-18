@@ -1,24 +1,24 @@
 import React, { useState } from 'react';
-import { Box, AppBar, Toolbar, Typography, Drawer, List, ListItem, ListItemText, CssBaseline, Modal, TextField, Button} from '@mui/material';
+import { Box, AppBar, Toolbar, Typography, Drawer, List, ListItem, ListItemText, CssBaseline, Modal, TextField, Button } from '@mui/material';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useUserContext } from '../contexts/UserContext';
 import logo from '../assets/logo.png';
 import Profile from '../components/Profile';
 import QuizHistory from './QuizHistory';
 import { useQuiz } from '../contexts/QuizContext';
-// import QuizResult from './QuizResult';
+import {ViewResult, CreatedQuizResults} from './QuizResult';
 
 const drawerWidth = 240;
 
 
 
-const DashBoard = () => {
-    const [selectedOption, setSelectedOption] = useState("profile");
+const DashBoard = ({selectedOption}) => {
     const [isModalOpen, setModalOpen] = useState(false);
     const [quizId, setQuizId] = useState('');
 
-    const {user,logout} = useUserContext();
-    const {quiz,getCreatedQuizHistory,getQuiz} = useQuiz();
+    const { user, logout } = useUserContext();
+    const { quiz, getCreatedQuizHistory, getGivenQuizHistory, getQuiz } = useQuiz();
+
 
     const navigate = useNavigate();
 
@@ -26,38 +26,43 @@ const DashBoard = () => {
         // console.log(user);
         switch (selectedOption) {
             case 'profile':
-                return <Profile/>;
+                return <Profile />;
             case 'quiz-history':
-                return <QuizHistory/>;
+                return <QuizHistory />;
+            case 'quiz-result':
+                return <CreatedQuizResults/>
             default:
-                return <Profile/>;
+                return <Profile />;
         }
     };
 
     const handleOptionSelect = (option) => {
-        setSelectedOption(option);
+        // setSelectedOption(option);
         if (option === 'create-quiz') {
             navigate('/create-quiz');
         } else if (option === 'quiz-history') {
             getCreatedQuizHistory();
-        } else if(option === 'give-quiz'){
+            getGivenQuizHistory();
+        } else if (option === 'give-quiz') {
             setModalOpen(true);
-        }else if (option === 'logout') {
+            return ;
+        } else if (option === 'logout') {
             // handle logout logic here
         }
+        navigate(`/dashboard/${option}`);
     };
 
     const handleQuizAccessCodeSubmit = async (e) => {
         e.preventDefault();
         const res = await getQuiz(quizId);
-        if(!res || res?.error ){
-            if(!res){
+        if (!res || res?.error) {
+            if (!res) {
                 alert("Wrong access code . Plzz enter again ")
-            }else
+            } else
                 alert(res.error);
-            return ;
+            return;
         }
-       
+
         navigate(`/quiz/${quizId}`);
     };
 
@@ -101,7 +106,7 @@ const DashBoard = () => {
             >
                 <Toolbar /> {/* To push the content below the AppBar */}
                 <List>
-                    <ListItem button="true" onClick={()=>{handleOptionSelect('profile')}} key={'profile'}
+                    <ListItem button="true" onClick={() => { handleOptionSelect('profile') }} key={'profile'}
                         sx={{
                             '&:hover': {
                                 backgroundColor: 'rgba(255, 255, 255, 0.2)', // Slight white overlay on hover
@@ -117,7 +122,7 @@ const DashBoard = () => {
                         }}>
                         <ListItemText primary={'Create Quiz'} sx={{ color: 'white' }} />
                     </ListItem>
-                    <ListItem button="true" onClick={()=>{handleOptionSelect('give-quiz')}} key={'give-quiz'}
+                    <ListItem button="true" onClick={() => { handleOptionSelect('give-quiz') }} key={'give-quiz'}
                         sx={{
                             '&:hover': {
                                 backgroundColor: 'rgba(255, 255, 255, 0.2)', // Slight white overlay on hover
@@ -125,7 +130,7 @@ const DashBoard = () => {
                         }}>
                         <ListItemText primary={'Give Quiz'} sx={{ color: 'white' }} />
                     </ListItem>
-                    <ListItem button="true" onClick={()=>{handleOptionSelect('quiz-history')}} key={'quiz-history'}
+                    <ListItem button="true" onClick={() => { handleOptionSelect('quiz-history') }} key={'quiz-history'}
                         sx={{
                             '&:hover': {
                                 backgroundColor: 'rgba(255, 255, 255, 0.2)', // Slight white overlay on hover
@@ -133,7 +138,7 @@ const DashBoard = () => {
                         }}>
                         <ListItemText primary={'Quiz History'} sx={{ color: 'white' }} />
                     </ListItem>
-                    <ListItem button="true" onClick={()=>{logout()}} key={'logout'}
+                    <ListItem button="true" onClick={() => { logout() }} key={'logout'}
                         sx={{
                             '&:hover': {
                                 backgroundColor: 'rgba(255, 255, 255, 0.2)', // Slight white overlay on hover
@@ -159,7 +164,7 @@ const DashBoard = () => {
             </main>
             <Modal
                 open={isModalOpen}
-                onClose={()=>{setModalOpen(false)}}
+                onClose={() => { setModalOpen(false) }}
                 aria-labelledby="quiz-modal-title"
                 aria-describedby="quiz-modal-description"
             >

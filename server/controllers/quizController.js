@@ -1,5 +1,6 @@
 const quizModel = require('../models/QuizModel'); // Update path as necessary
 const resultModel = require('../models/ResultModel');
+const userModel = require('../models/userModel'); // user modal 
 const AccessKey = require('../models/AccessKey'); // Import your AccessKey model
 
 
@@ -71,6 +72,27 @@ const getCreatedQuizHistory = async (req, res) => {
         res.status(500).json({ message: 'Failed to fetch quiz history', error: error.message });
     }
 };
+
+// fetch quizzes the user has participated in
+const getGivenQuizzesHistory = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        // find all quizzes where the user is in the participants array
+        const givenQuizzes = await quizModel.find({ participants: { $in: [userId] } })
+            .select('_id title createdAt') // select only necessary fields
+
+        if (!givenQuizzes || givenQuizzes.length === 0) {
+            return res.status(404).json({ message: 'No given quizzes found' });
+        }
+
+        // return summarized quiz details
+        res.status(200).json(givenQuizzes);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
 
 // update Quiz
 const updateQuiz = async (req, res) => {
@@ -164,5 +186,103 @@ const submitQuiz = async (req, res) => {
     }
 };
 
+// fetch quiz and result details for a specific quiz
+const getQuizAndResultDetails = async (req, res) => {
+    const quizId = req.params.quizId;
 
-module.exports = { createQuiz, getQuiz, getCreatedQuizHistory, updateQuiz, deleteQuiz, submitQuiz };
+    try {
+        const userId = req.user._id;
+
+        // find the quiz and the corresponding result for this user
+        const quiz = await quizModel.findById(quizId);
+        const result = await resultModel.findOne({ quiz_id: quizId, user_id: userId });
+        // console.log(req.params);
+        if (!quiz || !result) {
+            return res.status(404).json({ message: 'Quiz or result not found' });
+        }
+
+        // send back both the quiz and result details
+        res.status(200).json({
+            quiz: quiz,
+            result: result
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+
+// fetch summarized result details 
+const getQuizSummaryResult = async (req, res) => {
+    const { quizId } = req.params;
+
+    try {
+        const userId = req.user._id;
+
+        // find the quiz title and the corresponding result for this user
+        const quiz = await quizModel.findById(quizId).select('title');
+        const result = await resultModel.findOne({ quiz_id: quizId, user_id: userId })
+            .select('total_correct total_questions submitted_at');
+
+        if (!quiz || !result) {
+            return res.status(404).json({ message: 'Quiz or result not found' });
+        }
+
+        // send summarized result details
+        res.status(200).json({
+            quiz_title: quiz.title,
+            total_correct: result.total_correct,
+            total_questions: result.total_questions,
+            submitted_at: result.submitted_at
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+// fetch summarized result details for a specific quiz - for creator
+const getCreatedQuizResults = async (req, res) => {
+    const { quizId } = req.params;
+
+
+    try {
+        // fetch quiz data
+        const quiz = await quizModel.findById(quizId).select('title description start_time ');
+        if (!quiz) {
+            return res.status(404).json({ message: 'Quiz not found' });
+        }
+
+        // fetch results for the quiz
+        const result = await resultModel.find({ quiz_id: quizId }).select('user_id total_correct total_questions');
+
+        const participants = await Promise.all(
+            result.map(async (p) => {
+                const user = await userModel.findOne({ _id: p.user_id }).select('name'); 
+                p._doc.name = user.name; 
+                delete p._doc.user_id;
+                delete p._doc._id;
+                return p;
+            })
+        );
+
+        // prepare the response data
+        const response = {
+            title: quiz.title,
+            datetime: quiz.start_time,
+            totalQuestions: participants.total_questions,
+            participantsCount: participants.length,
+            participants
+        };
+
+        res.status(200).json(response);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+module.exports = {
+    createQuiz, getQuiz, getCreatedQuizHistory, getGivenQuizzesHistory, updateQuiz, deleteQuiz, submitQuiz,
+    getQuizAndResultDetails, getQuizSummaryResult, getCreatedQuizResults
+};

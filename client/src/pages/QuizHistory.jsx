@@ -3,8 +3,6 @@ import { Box, Typography, Grid, Button, Paper } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useQuiz } from '../contexts/QuizContext';
 
-
-
 const convert = (isoDate) => {
     const date = new Date(isoDate);
     const readableDate = date.toLocaleDateString('en-GB', {
@@ -15,21 +13,28 @@ const convert = (isoDate) => {
     return readableDate;
 }
 const QuizHistory = () => {
-    const { createdQuizzes,getQuiz } = useQuiz();
-    // Example data for quizzes created and given
+    const { createdQuizzes,givenQuizzes,getQuiz,getdetailedQuizResult, getQuizResult } = useQuiz();
+    
     const navigate = useNavigate();
 
-    const givenQuizzes = [
-        { id: 1, name: 'Web Security', date: '2024-10-02' },
-        { id: 2, name: 'Encryption Techniques', date: '2024-09-28' }
-    ];
-    const handleViewQuiz = async (quizId) => {
-      const res = await getQuiz(quizId);  
-      navigate("./view-quiz");
+    const handleViewQuiz_created = async (quizId) => {
+      await getQuiz(quizId);  
+      navigate("../quiz/view-quiz");     
+    }
+    const handleViewQuiz_given = async (quizId) => {
+      await getdetailedQuizResult(quizId);
+      navigate("../quiz/view-quiz");        
     }
 
-    const handleViewResult = () => {
+    const handleViewResult_created= () => {
       navigate("./quiz-result");
+    }
+    const handleViewResult_given = async (quizId) => {
+      
+        const resultData = await getQuizResult(quizId);
+        resultData['submissionDate'] = convert(resultData.submitted_at);
+        resultData['submissionTime'] = new Date(resultData.submitted_at).toLocaleTimeString();
+        navigate("./quiz-result", { state: resultData });
     }
     return (
         <Box sx={{ p: 3 }}>
@@ -44,8 +49,8 @@ const QuizHistory = () => {
                                 <Typography variant="body1">Name: {quiz.title}</Typography>
                                 <Typography variant="body2" color="textSecondary">Date: {convert(quiz.createdAt)}</Typography>
                                 <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
-                                    <Button variant="contained" color="primary" onClick={() => handleViewQuiz(quiz._id)}>View Quiz</Button>
-                                    <Button variant="outlined" color="secondary" onClick={handleViewResult}>View Results</Button>
+                                    <Button variant="contained" color="primary" onClick={() => handleViewQuiz_created(quiz._id)}>View Quiz</Button>
+                                    <Button variant="outlined" color="secondary" onClick={handleViewResult_created}>View Results</Button>
                                 </Box>
                             </Paper>
                         ))
@@ -59,12 +64,12 @@ const QuizHistory = () => {
                     <Typography variant="h6">Quizzes Given</Typography>
                     {givenQuizzes.length > 0 ? (
                         givenQuizzes.map(quiz => (
-                            <Paper key={quiz.id} sx={{ p: 2, mb: 2 }}>
-                                <Typography variant="body1">Name: {quiz.name}</Typography>
-                                <Typography variant="body2" color="textSecondary">Date: {quiz.date}</Typography>
+                            <Paper key={quiz._id} sx={{ p: 2, mb: 2 }}>
+                                <Typography variant="body1">Name: {quiz.title}</Typography>
+                                <Typography variant="body2" color="textSecondary">Date: {convert(quiz.createdAt)}</Typography>
                                 <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
-                                    <Button variant="contained" color="primary" onClick={handleViewQuiz}>View Quiz</Button>
-                                    <Button variant="outlined" color="secondary" onClick={handleViewResult}>View Result</Button>
+                                    <Button variant="contained" color="primary" onClick={() => handleViewQuiz_given(quiz._id)}>View Quiz</Button>
+                                    <Button variant="outlined" color="secondary" onClick={() => handleViewResult_given(quiz._id)}>View Result</Button>
                                 </Box>
                             </Paper>
                         ))

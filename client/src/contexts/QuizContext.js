@@ -1,30 +1,33 @@
 import React, { createContext, useContext, useState } from 'react';
-import {postRequest,getRequest,patchRequest} from '../utils/services';
+import { postRequest, getRequest, patchRequest } from '../utils/services';
 // Create the QuizContext
 const QuizContext = createContext();
 
 // Provider component
 export const QuizProvider = ({ children }) => {
-    const [createdQuizzes,setCreatedQuizzes] = useState([]);
-    const [quiz,setQuiz] = useState({});
-    const [questions] = useState([
-        {
-            question: "What is the capital of France?",
-            options: ["Paris", "London", "Berlin", "Madrid"],
-            selectedOption: null,
-        },
-        {
-            question: "What is 2 + 2?",
-            options: ["3", "4", "5", "6"],
-            selectedOption: null,
-        },
-        {
-            question: "What is the color of the sky?",
-            options: ["Blue", "Green", "Red", "Yellow"],
-            selectedOption: null,
-        },
-        // Add more questions as needed
-    ]);
+    const [createdQuizzes, setCreatedQuizzes] = useState([]);
+    const [givenQuizzes, setGivenQuizzes] = useState([]);
+
+    const [quiz, setQuiz] = useState({});
+    const [result, setResult] = useState({});
+    // const [questions] = useState([
+    //     {
+    //         question: "What is the capital of France?",
+    //         options: ["Paris", "London", "Berlin", "Madrid"],
+    //         selectedOption: null,
+    //     },
+    //     {
+    //         question: "What is 2 + 2?",
+    //         options: ["3", "4", "5", "6"],
+    //         selectedOption: null,
+    //     },
+    //     {
+    //         question: "What is the color of the sky?",
+    //         options: ["Blue", "Green", "Red", "Yellow"],
+    //         selectedOption: null,
+    //     },
+    //     // Add more questions as needed
+    // ]);
 
     const [answers, setAnswers] = useState({});
 
@@ -37,15 +40,15 @@ export const QuizProvider = ({ children }) => {
     };
 
     const createQuiz = async (quizData) => {
-        const response = await postRequest('/create-quiz',quizData);
+        const response = await postRequest('/create-quiz', quizData);
         if (!response.error) {
             setQuiz(response.quiz);
         }
         return response;
     }
 
-    const getQuiz = async (quizId) =>{
-        
+    const getQuiz = async (quizId) => {
+
         const response = await getRequest(`/get-quiz/${quizId}`);
         console.log(response);
 
@@ -55,7 +58,32 @@ export const QuizProvider = ({ children }) => {
 
         return response;
     }
-    const getCreatedQuizHistory = async () =>{
+
+    const getdetailedQuizResult = async (quizId) => {
+        const response = await getRequest(`/get-quiz-and-result/${quizId}`);
+        console.log(response);
+
+        if (!response?.error) {
+            setQuiz(response.quiz);
+            setResult(response.result);
+        }
+
+        return response;
+    }
+
+    const getQuizResult = async (quizId) => {
+
+        const response = await getRequest(`/get-summarized-quiz_result/${quizId}`);
+        console.log(response);
+
+        // if (!response?.error) {
+        //     setQuiz(response.quiz);
+        // }
+
+        return response;
+    }
+
+    const getCreatedQuizHistory = async () => {
         const response = await getRequest('/get-created-quiz-history');
 
         if (!response.error) {
@@ -66,13 +94,27 @@ export const QuizProvider = ({ children }) => {
         return response;
 
     }
+    const getGivenQuizHistory = async () => {
+        const response = await getRequest('/get-given-quiz-history');
 
-    const submitQuiz = async (info) =>{
-        const response = await postRequest('/submit-quiz',info);
+        if (!response.error) {
+            // console.log(response);
+            setGivenQuizzes(response);
+        }
+
+        return response;
+
+    }
+
+    const submitQuiz = async (info) => {
+        const response = await postRequest('/submit-quiz', info);
         return response;
     }
     return (
-        <QuizContext.Provider value={{ questions, answers,quiz,createdQuizzes ,getQuiz,getCreatedQuizHistory,selectOption,createQuiz,submitQuiz }}>
+        <QuizContext.Provider value={{
+            answers, quiz,result, createdQuizzes, givenQuizzes,
+            getQuiz, getCreatedQuizHistory, getGivenQuizHistory, getdetailedQuizResult, getQuizResult, selectOption, createQuiz, submitQuiz
+        }}>
             {children}
         </QuizContext.Provider>
     );

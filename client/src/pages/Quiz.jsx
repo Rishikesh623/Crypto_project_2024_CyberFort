@@ -46,8 +46,10 @@ function Quiz() {
 
     useEffect(()=>{
         if (quiz.participants.includes(user._id)) {
-            alert('You have already participated in this quiz.');
-            navigate(-1);
+            navigate("/dashboard");
+            setTimeout(()=>{
+                alert('You have already participated in this quiz.');
+            },1000);
             return;
          }
     },[quiz])
