@@ -4,6 +4,9 @@ const userRoutes = require('./routes/userRoutes.js');
 const quizRoutes = require('./routes/quizRoutes.js');
 const cors = require("cors");
 const cookieParser = require('cookie-parser');
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 const app = express();
 
@@ -17,12 +20,12 @@ app.use(quizRoutes);
 app.use(cookieParser());
 
 
-app.listen(5000,(err)=>{
+app.listen(process.env.PORT,(err)=>{
     if(err){
         console.log(err);
         return ;
     }
-    console.log("Listening at port 5000");
+    console.log(`Listening at port ${process.env.PORT}`);
 });
 
 //mongoDB connection established

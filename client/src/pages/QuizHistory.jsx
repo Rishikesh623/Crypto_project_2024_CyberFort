@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Box, Typography, Grid, Button, Paper } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useQuiz } from '../contexts/QuizContext';
@@ -9,31 +9,46 @@ const convert = (isoDate) => {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
-        }); 
+    });
     return readableDate;
 }
 const QuizHistory = () => {
-    const { createdQuizzes,givenQuizzes,getQuiz,getdetailedQuizResult, getQuizResult } = useQuiz();
-    
+    const {setQuiz,setResult, createdQuizzes, getCreatedQuizHistory, getGivenQuizHistory, givenQuizzes, getQuiz, getdetailedQuizResult, getQuizResult, getCreatedQuizResults } = useQuiz();
+
+    useEffect(() => {
+        // fetch created and given quiz history when the component mounts
+        getCreatedQuizHistory();
+        getGivenQuizHistory();
+        setQuiz(null);
+        setResult(null);
+    }, []);  // Empty dependency array to run the effect only once after mounting
+
     const navigate = useNavigate();
 
     const handleViewQuiz_created = async (quizId) => {
-      await getQuiz(quizId);  
-      navigate("../quiz/view-quiz");     
+        const res = await getQuiz(quizId);
+        if (res?.error) {
+            alert("Some error occurred");
+        }
+        navigate("../quiz/view-quiz");
     }
     const handleViewQuiz_given = async (quizId) => {
-      await getdetailedQuizResult(quizId);
-      navigate("../quiz/view-quiz");        
+        const res = await getdetailedQuizResult(quizId);
+        if (res?.error) {
+            alert("Some error occurred");
+        }
+        navigate("../quiz/view-quiz");
     }
 
-    const handleViewResult_created= () => {
-      navigate("./quiz-result");
+    const handleViewResult_created = async (quizId) => {
+        const resultData = await getCreatedQuizResults(quizId);
+        resultData['creator'] = true;
+        navigate("./quiz-result", { state: resultData });
     }
     const handleViewResult_given = async (quizId) => {
-      
+
         const resultData = await getQuizResult(quizId);
-        resultData['submissionDate'] = convert(resultData.submitted_at);
-        resultData['submissionTime'] = new Date(resultData.submitted_at).toLocaleTimeString();
+        resultData['creator'] = false;
         navigate("./quiz-result", { state: resultData });
     }
     return (
@@ -50,7 +65,7 @@ const QuizHistory = () => {
                                 <Typography variant="body2" color="textSecondary">Date: {convert(quiz.createdAt)}</Typography>
                                 <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
                                     <Button variant="contained" color="primary" onClick={() => handleViewQuiz_created(quiz._id)}>View Quiz</Button>
-                                    <Button variant="outlined" color="secondary" onClick={handleViewResult_created}>View Results</Button>
+                                    <Button variant="outlined" color="secondary" onClick={() => handleViewResult_created(quiz._id)}>View Results</Button>
                                 </Box>
                             </Paper>
                         ))

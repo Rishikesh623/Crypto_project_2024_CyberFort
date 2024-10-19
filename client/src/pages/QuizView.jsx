@@ -64,7 +64,7 @@ const QuizView = () => {
                             </Typography>
                             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                                 {question.options.map((option, optionIndex) => {
-                                    const selectedOption = result?.selected_options[index + 1]; // Get the selected option for this question
+                                    const selectedOption = result?.selected_options ? result.selected_options[index+1] : null; // Check for selected option
 
                                     // Determine option background color
                                     const isCorrect = option === question.correct_option;

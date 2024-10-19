@@ -4,24 +4,12 @@ import { CheckCircle, CalendarToday, QuestionAnswer, AccessTime } from '@mui/ico
 import { useNavigate, useLocation } from 'react-router-dom';
 
 
-const CreatedQuizResults = () => {
+
+const CreatedQuizResults = ({resultData}) => {
     const navigate = useNavigate();
+    console.log(resultData);
 
-    // Example data
-    const mockData = {
-        title: "General Knowledge Quiz",
-        date: "2024-10-10T00:00:00Z", // ISO string format
-        totalQuestions: 10,
-        participantsCount: 3,
-        totalCorrects: 18,
-        participants: [
-            { name: "Alice Johnson", totalCorrect: 7 },
-            { name: "Bob Smith", totalCorrect: 5 },
-            { name: "Charlie Brown", totalCorrect: 6 },
-        ],
-    };
-
-    const { title, date, totalQuestions, participantsCount, totalCorrects, participants } = mockData;
+    const { title, datetime, totalQuestions, participantsCount, participants } = resultData;
 
     return (
         <Box sx={{ padding: 3 }}>
@@ -37,10 +25,9 @@ const CreatedQuizResults = () => {
             <Card sx={{ mb: 2, backgroundColor: 'white' }}>
                 <CardContent>
                     <Typography variant="h4">{title}</Typography>
-                    <Typography variant="body1">Date of Occurrence: {new Date(date).toLocaleDateString()}</Typography>
+                    <Typography variant="body1">Date of Occurrence: {new Date(datetime).toLocaleDateString()}</Typography>
                     <Typography variant="body1">Total Questions: {totalQuestions}</Typography>
                     <Typography variant="body1">Number of Participants: {participantsCount}</Typography>
-                    <Typography variant="body1">Total Correct Answers: {totalCorrects}</Typography>
                 </CardContent>
             </Card>
 
@@ -61,7 +48,7 @@ const CreatedQuizResults = () => {
                                     {participants.map((participant, index) => (
                                         <TableRow key={index}>
                                             <TableCell>{participant.name}</TableCell>
-                                            <TableCell>{participant.totalCorrect}</TableCell>
+                                            <TableCell>{participant.total_correct}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -73,18 +60,9 @@ const CreatedQuizResults = () => {
         </Box>
     );
 };
-const ViewResult = () => {
+const GivenQuizResults = ({resultData}) => {
     const navigate = useNavigate();
-    const location = useLocation();
-    const resultData = location.state;
 
-    // const resultData = {
-    //     quiz_title: "General Knowledge Quiz",
-    //     submissionDate: "2024-10-10",
-    //     total_questions: 5,
-    //     total_correct: 3,
-    //     submissionTime: "2 minutes",
-    // };
     return (
         <Box sx={{ padding: 2, backgroundColor: 'transparent', mb: 3 }}>
             <Button
@@ -116,7 +94,7 @@ const ViewResult = () => {
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                     <CalendarToday sx={{ color: 'blue', marginRight: 1 }} />
                                     <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                                        Submission Date: {resultData.submissionDate}
+                                        Submission Date: {new Date(resultData.submitted_at).toLocaleDateString()}
                                     </Typography>
                                 </Box>
                             </Grid>
@@ -132,7 +110,7 @@ const ViewResult = () => {
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                     <AccessTime sx={{ color: 'orange', marginRight: 1 }} />
                                     <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                                        Submission Time: {resultData.submissionTime}
+                                        Submission Time: {new Date(resultData.submitted_at).toLocaleTimeString()}
                                     </Typography>
                                 </Box>
                             </Grid>
@@ -160,6 +138,16 @@ const ViewResult = () => {
         </Box>
     );
 };
-export { ViewResult, CreatedQuizResults };
+
+const QuizResult = () =>{
+    const location = useLocation();
+    const resultData = location.state;
+
+    if(resultData.creator){
+        return <CreatedQuizResults resultData={resultData}/>
+    }
+    return <GivenQuizResults resultData={resultData}/>
+}
+export default QuizResult;
 
 

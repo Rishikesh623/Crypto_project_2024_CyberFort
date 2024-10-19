@@ -2,7 +2,37 @@ const quizModel = require('../models/QuizModel'); // Update path as necessary
 const resultModel = require('../models/ResultModel');
 const userModel = require('../models/userModel'); // user modal 
 const AccessKey = require('../models/AccessKey'); // Import your AccessKey model
+const CryptoJS = require("crypto-js");
 
+const secretKey = process.env.ENCRYPTION_KEY;
+
+// Encryption function
+const encryptData = (data, secretKey) => {
+    return CryptoJS.AES.encrypt(data, secretKey).toString();
+};
+
+// Decryption function
+const decryptData = (ciphertext, secretKey) => {
+    const bytes = CryptoJS.AES.decrypt(ciphertext, secretKey);
+    return bytes.toString(CryptoJS.enc.Utf8);
+};
+
+/*
+ // Store securely in env variable
+
+const quiz = {
+    title: encryptData("Sample Quiz", secretKey),
+    questions: encryptData(JSON.stringify(questionsArray), secretKey)
+};
+
+await quizModel.create(quiz);
+
+const quiz = await quizModel.findById(quizId);
+const decryptedQuiz = {
+    title: decryptData(quiz.title, secretKey),
+    questions: JSON.parse(decryptData(quiz.questions, secretKey))
+};
+*/
 
 // create Quiz
 const createQuiz = async (req, res) => {
@@ -256,12 +286,17 @@ const getCreatedQuizResults = async (req, res) => {
         // fetch results for the quiz
         const result = await resultModel.find({ quiz_id: quizId }).select('user_id total_correct total_questions');
 
+        let totalQuestions = 0;
         const participants = await Promise.all(
             result.map(async (p) => {
                 const user = await userModel.findOne({ _id: p.user_id }).select('name'); 
+                if(totalQuestions===0){
+                    totalQuestions=p._doc.total_questions;
+                }
                 p._doc.name = user.name; 
                 delete p._doc.user_id;
                 delete p._doc._id;
+                delete p._doc.total_questions;
                 return p;
             })
         );
@@ -270,7 +305,7 @@ const getCreatedQuizResults = async (req, res) => {
         const response = {
             title: quiz.title,
             datetime: quiz.start_time,
-            totalQuestions: participants.total_questions,
+            totalQuestions: totalQuestions,
             participantsCount: participants.length,
             participants
         };

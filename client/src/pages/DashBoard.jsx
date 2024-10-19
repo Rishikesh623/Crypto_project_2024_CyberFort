@@ -6,7 +6,7 @@ import logo from '../assets/logo.png';
 import Profile from '../components/Profile';
 import QuizHistory from './QuizHistory';
 import { useQuiz } from '../contexts/QuizContext';
-import {ViewResult, CreatedQuizResults} from './QuizResult';
+import QuizResult from './QuizResult';
 
 const drawerWidth = 240;
 
@@ -30,7 +30,7 @@ const DashBoard = ({selectedOption}) => {
             case 'quiz-history':
                 return <QuizHistory />;
             case 'quiz-result':
-                return <CreatedQuizResults/>
+                return <QuizResult/>
             default:
                 return <Profile />;
         }
@@ -40,14 +40,9 @@ const DashBoard = ({selectedOption}) => {
         // setSelectedOption(option);
         if (option === 'create-quiz') {
             navigate('/create-quiz');
-        } else if (option === 'quiz-history') {
-            getCreatedQuizHistory();
-            getGivenQuizHistory();
         } else if (option === 'give-quiz') {
             setModalOpen(true);
             return ;
-        } else if (option === 'logout') {
-            // handle logout logic here
         }
         navigate(`/dashboard/${option}`);
     };

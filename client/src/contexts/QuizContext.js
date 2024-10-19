@@ -8,8 +8,8 @@ export const QuizProvider = ({ children }) => {
     const [createdQuizzes, setCreatedQuizzes] = useState([]);
     const [givenQuizzes, setGivenQuizzes] = useState([]);
 
-    const [quiz, setQuiz] = useState({});
-    const [result, setResult] = useState({});
+    const [quiz, setQuiz] = useState(null);
+    const [result, setResult] = useState(null);
     // const [questions] = useState([
     //     {
     //         question: "What is the capital of France?",
@@ -50,7 +50,7 @@ export const QuizProvider = ({ children }) => {
     const getQuiz = async (quizId) => {
 
         const response = await getRequest(`/get-quiz/${quizId}`);
-        console.log(response);
+        // console.log(response);
 
         if (!response?.error) {
             setQuiz(response);
@@ -61,7 +61,7 @@ export const QuizProvider = ({ children }) => {
 
     const getdetailedQuizResult = async (quizId) => {
         const response = await getRequest(`/get-quiz-and-result/${quizId}`);
-        console.log(response);
+        // console.log(response);
 
         if (!response?.error) {
             setQuiz(response.quiz);
@@ -74,7 +74,18 @@ export const QuizProvider = ({ children }) => {
     const getQuizResult = async (quizId) => {
 
         const response = await getRequest(`/get-summarized-quiz_result/${quizId}`);
-        console.log(response);
+        // console.log(response);
+
+        // if (!response?.error) {
+        //     setQuiz(response.quiz);
+        // }
+
+        return response;
+    }
+
+    const getCreatedQuizResults = async (quizId) => {
+        const response = await getRequest(`/get-created-quiz_result/${quizId}`);
+        // console.log(response);
 
         // if (!response?.error) {
         //     setQuiz(response.quiz);
@@ -87,7 +98,6 @@ export const QuizProvider = ({ children }) => {
         const response = await getRequest('/get-created-quiz-history');
 
         if (!response.error) {
-            // console.log(response);
             setCreatedQuizzes(response);
         }
 
@@ -98,7 +108,6 @@ export const QuizProvider = ({ children }) => {
         const response = await getRequest('/get-given-quiz-history');
 
         if (!response.error) {
-            // console.log(response);
             setGivenQuizzes(response);
         }
 
@@ -110,10 +119,12 @@ export const QuizProvider = ({ children }) => {
         const response = await postRequest('/submit-quiz', info);
         return response;
     }
+
+
     return (
         <QuizContext.Provider value={{
-            answers, quiz,result, createdQuizzes, givenQuizzes,
-            getQuiz, getCreatedQuizHistory, getGivenQuizHistory, getdetailedQuizResult, getQuizResult, selectOption, createQuiz, submitQuiz
+            answers, quiz,setQuiz,result,setResult, createdQuizzes, givenQuizzes,
+            getQuiz, getCreatedQuizHistory, getGivenQuizHistory, getdetailedQuizResult, getQuizResult,getCreatedQuizResults, selectOption, createQuiz, submitQuiz
         }}>
             {children}
         </QuizContext.Provider>

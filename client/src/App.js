@@ -1,16 +1,16 @@
 import './App.css';
+import { Routes, Route } from 'react-router-dom';
+import { QuizProvider } from './contexts/QuizContext';
+import { useUserContext } from './contexts/UserContext.js';
 import Home from './pages/Home.jsx';
 import Signin from './pages/Signin.jsx';
 import Signup from './pages/Signup.jsx';
 import Quiz from './pages/Quiz.jsx';
 import QuizForm from './pages/QuizForm.jsx';
 import QuizView from './pages/QuizView.jsx';
-import QuizResult from './pages/QuizResult.jsx';
-import { QuizProvider } from './contexts/QuizContext';
-import { Routes, Route } from 'react-router-dom';
 import DashBoard from './pages/DashBoard.jsx';
 import QuizMonitor from './pages/QuizMonitor.jsx';
-import { useUserContext } from './contexts/UserContext.js';
+import NotFound from './pages/NotFound.jsx';
 
 function App() {
   const {user} = useUserContext();
@@ -29,6 +29,7 @@ function App() {
         <Route element=<QuizView/> path="/quiz/view-quiz" />
         <Route element=<DashBoard selectedOption="quiz-result" /> path="/dashboard/quiz-history/quiz-result" />
         <Route element=<QuizMonitor/> path="/dashboard/quiz-monitor"/>
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </QuizProvider>
 
