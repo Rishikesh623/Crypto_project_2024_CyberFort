@@ -3,7 +3,9 @@ const resultModel = require('../models/ResultModel');
 const userModel = require('../models/userModel'); // user modal 
 const AccessKey = require('../models/AccessKey'); // Import your AccessKey model
 const CryptoJS = require("crypto-js");
+const dotenv = require('dotenv');
 
+dotenv.config();
 const secretKey = process.env.ENCRYPTION_KEY;
 
 // Encryption function
@@ -52,12 +54,16 @@ const createQuiz = async (req, res) => {
         // Get the current key and increment it
         const currentAccessKey = accessKeyDocument.currentKey;
 
+        const encryptedQuestions  = encryptData(JSON.stringify(req.body.questions), secretKey);
+
+        // console.log(JSON.parse(decryptData(qe,secretKey)));
+
         // create the quiz
         const newQuiz = new quizModel({
             _id: currentAccessKey, // use the access key as the quiz _id
             title: req.body.title,
             description: req.body.description,
-            questions: req.body.questions,
+            questions: encryptedQuestions,
             created_by: req.user._id,
             start_time: req.body.start_time,
             end_time: req.body.end_time,
@@ -81,8 +87,8 @@ const createQuiz = async (req, res) => {
 const getQuiz = async (req, res) => {
 
     try {
-        const quiz = await quizModel.findById(req.params.quizId);
-        // console.log(quiz);
+        const quiz = await quizModel.findById(req.params.quizId).lean();
+        quiz.questions = JSON.parse(decryptData(quiz.questions,secretKey));
         res.status(200).json(quiz);
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
@@ -96,6 +102,8 @@ const getCreatedQuizHistory = async (req, res) => {
             { created_by: req.user._id }, // Fetch quizzes created by the user
             { id: 1, title: 1, createdAt: 1 } // Project only required fields
         ).sort({ createdAt: -1 }); // Sort by the creation date, newest first
+
+        
 
         res.status(200).json(quizzes);
     } catch (error) {
@@ -175,16 +183,16 @@ const submitQuiz = async (req, res) => {
         if (!quiz) {
             return res.status(404).json({ message: 'Quiz not found' });
         }
-
+        const questions = JSON.parse(decryptData(quiz.questions, secretKey));
         let totalCorrect = 0;
-        const totalQuestions = quiz.questions.length;
+        const totalQuestions = questions.length;
 
         //calculate total correct answers
         Object.keys(selectedOptions).forEach(question_id => {
             const selectedOption = selectedOptions[question_id];
 
             //find the corresponding question in the quiz
-            const question = quiz.questions.find(q => q._id.toString() === question_id);
+            const question = questions.find(q => q._id.toString() === question_id);
 
 
             //check if the selected option matches the correct option
@@ -224,13 +232,13 @@ const getQuizAndResultDetails = async (req, res) => {
         const userId = req.user._id;
 
         // find the quiz and the corresponding result for this user
-        const quiz = await quizModel.findById(quizId);
+        const quiz = await quizModel.findById(quizId).lean();
         const result = await resultModel.findOne({ quiz_id: quizId, user_id: userId });
         // console.log(req.params);
         if (!quiz || !result) {
             return res.status(404).json({ message: 'Quiz or result not found' });
         }
-
+        quiz.questions = JSON.parse(decryptData(quiz.questions, secretKey));
         // send back both the quiz and result details
         res.status(200).json({
             quiz: quiz,

@@ -29,9 +29,13 @@ const quizSchema = new mongoose.Schema({
         required: true 
     },
     description: { 
-        type: String 
+        type: String ,
+        required: true
     },
-    questions: [questionSchema],
+    questions: {
+        type: String,
+        required: true
+    },
     created_by: { 
         type: String, 
         ref: 'User', 

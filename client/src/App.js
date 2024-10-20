@@ -23,7 +23,7 @@ function App() {
         <Route element=<Signup /> path="/signup" />
         <Route element=<Quiz /> path="/quiz/:quizId" />
         <Route element=<QuizForm /> path="/create-quiz" />
-        <Route element=<DashBoard/> path="/dashboard" />
+        <Route element=<DashBoard selectedOption="profile"/> path="/dashboard" />
         <Route element=<DashBoard selectedOption="profile" /> path="/dashboard/profile" />
         <Route element=<DashBoard selectedOption="quiz-history" /> path="/dashboard/quiz-history" />
         <Route element=<QuizView/> path="/quiz/view-quiz" />

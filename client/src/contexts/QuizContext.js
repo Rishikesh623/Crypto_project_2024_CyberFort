@@ -116,6 +116,7 @@ export const QuizProvider = ({ children }) => {
     }
 
     const submitQuiz = async (info) => {
+        console.log(info);
         const response = await postRequest('/submit-quiz', info);
         return response;
     }
