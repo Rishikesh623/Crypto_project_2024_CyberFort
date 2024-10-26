@@ -7,18 +7,17 @@ import Profile from '../components/Profile';
 import QuizHistory from './QuizHistory';
 import { useQuiz } from '../contexts/QuizContext';
 import QuizResult from './QuizResult';
+import MyAlert from '../components/MyAlert';
 
 const drawerWidth = 240;
 
-
-
-const DashBoard = ({selectedOption}) => {
+const DashBoard = ({ selectedOption }) => {
     const [isModalOpen, setModalOpen] = useState(false);
     const [quizId, setQuizId] = useState('');
 
     const { user, logout } = useUserContext();
     const { quiz, getCreatedQuizHistory, getGivenQuizHistory, getQuiz } = useQuiz();
-
+    const [showCustomAlert, setShowCustomAlert] = useState(null); // Custom alert state
 
     const navigate = useNavigate();
 
@@ -30,7 +29,7 @@ const DashBoard = ({selectedOption}) => {
             case 'quiz-history':
                 return <QuizHistory />;
             case 'quiz-result':
-                return <QuizResult/>
+                return <QuizResult />
             default:
                 return <Profile />;
         }
@@ -42,27 +41,51 @@ const DashBoard = ({selectedOption}) => {
             navigate('/create-quiz');
         } else if (option === 'give-quiz') {
             setModalOpen(true);
-            return ;
+            return;
         }
         navigate(`/dashboard/${option}`);
     };
 
     const handleQuizAccessCodeSubmit = async (e) => {
         e.preventDefault();
-        const res = await getQuiz(quizId);
+
+        const res = await getQuiz(quizId); // Fetch quiz details
         if (!res || res?.error) {
-            if (!res) {
-                alert("Wrong access code . Plzz enter again ")
-            } else
-                alert(res.error);
+            alert(!res ? "Wrong access code. Please enter again." : res.message);
+            return;
+        }
+;
+        //extract the start and end times from the response
+        const { start_time, end_time } = res; // Adjust as per your API response structure
+
+        //get the current time
+        const currentTime = new Date();
+
+        //convert start and end times to Date objects
+        const start = new Date(start_time);
+        const end = new Date(end_time);
+
+        //check if the current time is within the allowed interval
+        if (currentTime < start) {
+            setShowCustomAlert({ type: "info", title: "Info", message: "The quiz hasn't started yet. Please check the start time." });
+            return;
+        } else if (currentTime > end) {
+            setShowCustomAlert({ type: "info", title: "Info", message: "The quiz has already ended." });
             return;
         }
 
+        //if already given the quiz
+        if (res.participants.includes(user._id)) {
+            setShowCustomAlert({ type: "info", title: "Info", message: "You have already participated in this quiz." });
+            return;
+        }
+        //if within the interval & not submitted , proceed to the quiz
         navigate(`/quiz/${quizId}`);
     };
-
     return (
         <div style={{ display: 'flex' }}>
+
+
             <CssBaseline />
             <AppBar position="fixed" sx={{ zIndex: 1300, background: 'linear-gradient(to right, #ff7e5f, #feb47b)' }}>
                 <Toolbar>
@@ -99,6 +122,7 @@ const DashBoard = ({selectedOption}) => {
                     },
                 }}
             >
+
                 <Toolbar /> {/* To push the content below the AppBar */}
                 <List>
                     <ListItem button="true" onClick={() => { handleOptionSelect('profile') }} key={'profile'}
@@ -176,6 +200,7 @@ const DashBoard = ({selectedOption}) => {
                         p: 4,
                     }}
                 >
+
                     <Typography id="quiz-modal-title" variant="h6" component="h2">
                         Enter Quiz Access Code
                     </Typography>
@@ -192,6 +217,9 @@ const DashBoard = ({selectedOption}) => {
                             Start Quiz
                         </Button>
                     </form>
+                    {showCustomAlert !== null && (
+                        <MyAlert alert={showCustomAlert} setShowCustomAlert={setShowCustomAlert} />
+                    )}
                 </Box>
             </Modal>
         </div>
