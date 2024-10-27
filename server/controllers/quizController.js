@@ -134,22 +134,26 @@ const getGivenQuizzesHistory = async (req, res) => {
 
 // update Quiz
 const updateQuiz = async (req, res) => {
-    const { quizId, title, description, questions, start_time, end_time } = req.body;
+    const { quizId, changes} = req.body;
 
     try {
         const quiz = await quizModel.findById(quizId);
+        
         if (!quiz || quiz.created_by.toString() !== req.user._id) {
             return res.status(404).json({ message: 'Quiz not found or unauthorized' });
         }
 
-        quiz.title = title || quiz.title;
-        quiz.description = description || quiz.description;
-        quiz.questions = questions || quiz.questions;
-        quiz.start_time = start_time || quiz.start_time;
-        quiz.end_time = end_time || quiz.end_time;
+        quiz.title = changes.title || quiz.title;
+        quiz.description = changes.description || quiz.description;
+        quiz.questions = changes.questions || quiz.questions;
+        quiz.start_time = changes.start_time || quiz.start_time;
+        quiz.end_time = changes.end_time || quiz.end_time;
 
         await quiz.save();
-        res.status(200).json({ message: 'Quiz updated successfully', quiz });
+
+        quiz.questions = JSON.parse(decryptData(quiz.questions,secretKey));
+
+        res.status(200).json({ message: 'Quiz updated successfully'});
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }

@@ -120,13 +120,19 @@ export const QuizProvider = ({ children }) => {
         const response = await postRequest('/submit-quiz', info);
         return response;
     }
-
-
+    
+    const updateQuiz = async (quizId,changes) =>{
+        const response = await patchRequest('/update-quiz',{quizId,changes});
+        if(!response?.error){
+            setQuiz({ ...quiz, ...changes });//make changes visible instantly
+        }
+        return response;
+    }
     return (
         <QuizContext.Provider value={{
             answers, quiz,setQuiz,result,setResult, createdQuizzes, givenQuizzes,
             getQuiz, getCreatedQuizHistory, getGivenQuizHistory, getdetailedQuizResult, getQuizResult,getCreatedQuizResults, selectOption, createQuiz, submitQuiz
-        }}>
+            ,updateQuiz}}>
             {children}
         </QuizContext.Provider>
     );
