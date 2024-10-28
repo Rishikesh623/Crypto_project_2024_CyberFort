@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect,useState } from 'react';
 import { postRequest, getRequest, patchRequest } from '../utils/services';
+
 // Create the QuizContext
 const QuizContext = createContext();
 

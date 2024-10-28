@@ -11,6 +11,7 @@ import QuizView from './pages/QuizView.jsx';
 import DashBoard from './pages/DashBoard.jsx';
 import QuizMonitor from './pages/QuizMonitor.jsx';
 import NotFound from './pages/NotFound.jsx';
+import RT from './pages/RT.jsx';
 
 function App() {
   const {user} = useUserContext();
@@ -20,6 +21,7 @@ function App() {
       <Routes>
         <Route element={user?.name ? <DashBoard/> : <Home />} path="/" />
         <Route element=<Signin /> path="/signin" />
+        <Route element=<RT /> path="/rt" />
         <Route element=<Signup /> path="/signup" />
         <Route element=<Quiz /> path="/quiz/:quizId" />
         <Route element=<QuizForm /> path="/create-quiz" />

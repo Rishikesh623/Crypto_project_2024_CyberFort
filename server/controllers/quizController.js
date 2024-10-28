@@ -100,8 +100,8 @@ const getCreatedQuizHistory = async (req, res) => {
     try {
         const quizzes = await quizModel.find(
             { created_by: req.user._id }, // Fetch quizzes created by the user
-            { id: 1, title: 1, createdAt: 1 } // Project only required fields
-        ).sort({ createdAt: -1 }); // Sort by the creation date, newest first
+            { id: 1, title: 1, end_time: 1 } // Project only required fields
+        ).sort({ end_time: -1 }); // Sort by the creation date, newest first
 
         
 
@@ -118,7 +118,8 @@ const getGivenQuizzesHistory = async (req, res) => {
 
         // find all quizzes where the user is in the participants array
         const givenQuizzes = await quizModel.find({ participants: { $in: [userId] } })
-            .select('_id title createdAt') // select only necessary fields
+            .select('_id title end_time')
+            .sort({ end_time: -1 }); // select only necessary fields
 
         if (!givenQuizzes || givenQuizzes.length === 0) {
             return res.status(404).json({ message: 'No given quizzes found' });

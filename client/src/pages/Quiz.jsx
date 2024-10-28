@@ -7,10 +7,11 @@ import QuizHeader from '../components/QuizHeader';
 import Pagination from '../components/Pagination';
 import QuestionBox from '../components/QuestionBox';
 import MyAlert from '../components/MyAlert';
+import { io } from "socket.io-client";
 
 function Quiz() {
     const { user } = useUserContext();
-    const { quiz, submitQuiz } = useQuiz();
+    const { quiz, submitQuiz, intializeSocket } = useQuiz();
     const navigate = useNavigate();
     const [currentQuestion, setCurrentQuestion] = useState(1);
     const [selectedOptions, setSelectedOptions] = useState({});
@@ -20,6 +21,65 @@ function Quiz() {
     const [remainingTime, setRemainingTime] = useState(null);
     const maxAllowedSwitches = 3;
     const questions = quiz.questions;
+
+    const [socket,setSocket] = useState(null);
+    useEffect(()=>{
+        const newSocket  = io("http://localhost:4000");
+        setSocket(newSocket);
+
+        return () =>{
+            newSocket.disconnect();
+        }
+    },[]);
+
+    // trigger event -- add online users giving quiz
+    useEffect(() => {
+        if(socket==null)   
+            return ;
+        socket.emit("addParticipant",user?._id);
+
+        socket.on("getAlert", (res) => {
+            alert(res);
+        });
+
+        return () => {
+            socket.off("getAlert");
+        };
+
+    },[socket])//if socket change new conn thus run it agin 
+
+    // //send msg
+    // useEffect(() => {
+    //     if(socket==null)    return ;
+        
+    //     const recipientId = currentChat?.members.find((id) => id !== user._id);
+    //     socket.emit("sendMessage",{...newMessage,recipientId});
+    // },[newMessage]) 
+    
+    // //receive msg & notifications
+    // useEffect(() => {
+    //     if(socket==null)    return ;
+         
+    //     socket.on("getMessage", res => {
+    //         if(currentChat?._id !== res.chatId) return 
+    //         setMessages((prev) => [...prev,res]);
+    //     });
+    //     socket.on("getNotification", (res) => {
+    //         const isChatOpen = currentChat?.members.some(id => id===res.senderId);
+            
+    //         if(isChatOpen){
+    //             setNotifications(prev => [{...res, isRead:true},...prev]);
+    //         }else{
+    //             setNotifications(prev => [res,...prev]);
+    //         }
+    //     });
+
+    //     return () => {
+    //         socket.off("getMessage");
+    //         socket.off("getNotifications");
+    //     }
+        
+    // },[socket,currentChat])//if socket change new conn thus run it agin 
 
     useEffect(() => {
         // function to calculate remaining time and update the state

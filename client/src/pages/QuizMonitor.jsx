@@ -1,24 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Typography, Button, List, ListItem, ListItemText, Divider, Paper } from '@mui/material';
 import { useNavigate } from 'react-router-dom'; // Assuming react-router-dom is used for navigation
+import io from 'socket.io-client';
 
-// Mock Data Example
-const quizDetails = {
-    name: "Cybersecurity Quiz",
-    description: "A quiz on basic cybersecurity principles.",
-    timeLeft: "10:15", // Replace with real-time countdown logic
-    isCompleted: false,
-};
-
-const students = [
-    { name: 'John Doe', id: '123', remarks: 'No violations', removed: false },
-    { name: 'Jane Smith', id: '456', remarks: 'Tab switched', removed: false },
-    { name: 'Sam Wilson', id: '789', remarks: 'Multiple faces detected', removed: true },
-];
+// Replace with your server URL and quiz ID
+const socket = null;
 
 const QuizMonitor = () => {
-    const [studentList, setStudentList] = useState(students);
-    const navigate = useNavigate(); // For navigating between routes
+    const [studentList, setStudentList] = useState([]);
+    const [quizDetails, setQuizDetails] = useState({});
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        // Join the quiz room
+        socket.emit('joinQuiz', { quizId: 'YOUR_QUIZ_ID' });
+
+        // Listen for candidate updates
+        socket.on('candidateListUpdate', (candidates) => {
+            setStudentList(candidates);
+        });
+
+        // Listen for violation events
+        socket.on('violationEvent', (event) => {
+            console.log(event); // Log violation event
+            // Save to logs (implement logging here)
+        });
+
+        // Clean up on component unmount
+        return () => {
+            socket.disconnect();
+        };
+    }, []);
 
     const removeStudent = (id) => {
         setStudentList(prevList =>
@@ -88,6 +100,16 @@ const QuizMonitor = () => {
                     ))}
                 </List>
             </Paper>
+
+            {/* See Video Button */}
+            <Button
+                variant="contained"
+                color="primary"
+                onClick={() => navigate(`/live-video/YOUR_QUIZ_ID`)} // Redirect to the video stream page
+                sx={{ marginTop: 2 }}
+            >
+                See Video
+            </Button>
         </Box>
     );
 };
