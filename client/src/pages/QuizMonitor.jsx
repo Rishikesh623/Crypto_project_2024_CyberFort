@@ -1,41 +1,57 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Box, Typography, Button, List, ListItem, ListItemText, Divider, Paper } from '@mui/material';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { useNavigate } from 'react-router-dom'; // Assuming react-router-dom is used for navigation
 import io from 'socket.io-client';
+import { useQuiz } from '../contexts/QuizContext';
 
-// Replace with your server URL and quiz ID
-const socket = null;
+const QuizQuizMonitor = () => {
 
-const QuizMonitor = () => {
-    const [studentList, setStudentList] = useState([]);
-    const [quizDetails, setQuizDetails] = useState({});
+    const { quiz } = useQuiz();
+    const [participants, setParticipants] = useState([]);
+    const [timeLeft, setTimeLeft] = useState("");
+
+    const socket = useRef(null);
+    useEffect(() => {
+        //connect socket only once on load
+        socket.current = io("http://localhost:4000");
+
+        //emit joinQuizMonitor event to join the quiz room as creator
+        socket.current.emit("joinQuizAsCreator", quiz._id);
+
+        //listen for new participants joining
+        socket.current.on("participantJoined", (data) => {
+            setParticipants(data);
+        });
+        // Calculate remaining time based on quiz end time
+        const calculateTimeLeft = () => {
+            const timeDiff = new Date(quiz.end_time) - new Date();
+            if (timeDiff > 0) {
+                const minutes = Math.floor((timeDiff / 1000 / 60) % 60);
+                const seconds = Math.floor((timeDiff / 1000) % 60);
+                setTimeLeft(`${minutes}m ${seconds}s`);
+            } else {
+                setTimeLeft("Time's up");
+            }
+        };
+
+        // Update time remaining every second
+        const timerInterval = setInterval(calculateTimeLeft, 1000);
+
+        //clean up socket on component unmount
+        return () => {
+            clearInterval(timerInterval);
+            socket.current.disconnect();
+        };
+    }, [socket, quiz._id]);
+
     const navigate = useNavigate();
 
-    useEffect(() => {
-        // Join the quiz room
-        socket.emit('joinQuiz', { quizId: 'YOUR_QUIZ_ID' });
 
-        // Listen for candidate updates
-        socket.on('candidateListUpdate', (candidates) => {
-            setStudentList(candidates);
-        });
-
-        // Listen for violation events
-        socket.on('violationEvent', (event) => {
-            console.log(event); // Log violation event
-            // Save to logs (implement logging here)
-        });
-
-        // Clean up on component unmount
-        return () => {
-            socket.disconnect();
-        };
-    }, []);
-
-    const removeStudent = (id) => {
-        setStudentList(prevList =>
-            prevList.map(student =>
-                student.id === id ? { ...student, removed: true } : student
+    const removeparticipant = (id) => {
+        setParticipants(prevList =>
+            prevList.map(participant =>
+                participant.id === id ? { ...participant, removed: true } : participant
             )
         );
     };
@@ -47,71 +63,63 @@ const QuizMonitor = () => {
     return (
         <Box
             sx={{
-                background: 'linear-gradient(to right, #ff7e5f, #feb47b)',
-                minHeight: '100vh',
-                padding: 3,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
+                background: 'linear-gradient(to right, #ff7e5f, #feb47b)',
+                minHeight: '100vh',
+                padding: 3,
             }}
         >
-            {/* Back Button */}
-            <Button
-                variant="contained"
-                color="primary"
-                onClick={goBack}
-                sx={{ alignSelf: 'flex-start', marginBottom: 2 }}
-            >
-                Back
-            </Button>
-
-            {/* Quiz Details */}
-            <Paper elevation={3} sx={{ padding: 3, maxWidth: '800px', width: '100%', marginBottom: 4 }}>
-                <Typography variant="h4" gutterBottom>{quizDetails.name}</Typography>
-                <Typography variant="body1" gutterBottom>{quizDetails.description}</Typography>
-                <Typography variant="h6" color={quizDetails.isCompleted ? 'green' : 'red'}>
-                    {quizDetails.isCompleted ? 'Completed' : `Time Left: ${quizDetails.timeLeft}`}
+            {/* Header with Quiz Timer */}
+            <Paper elevation={3} sx={{ padding: 3, width: '100%', maxWidth: '800px', marginBottom: 3 }}>
+                <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1, color: '#333' }}>
+                    {quiz.title}
+                </Typography>
+                
+                <Typography variant="body1" sx={{ color: '#0000FF', mb: 1 }}>
+                    # QuizId{" "}{quiz._id}
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#555', mb: 1 }}>
+                    {quiz.description}
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    Time Left :
+                    <AccessTimeIcon sx={{ marginRight: 1 }} />
+                    <Typography variant="h6" color={timeLeft === "Time's up" ? 'red' : 'green'}>
+                        {timeLeft}
+                    </Typography>
+                </Box>
+                <hr />
+                <Typography variant="body2" color="textSecondary">
+                    Monitoring participants in real-time. Violations, if any, will appear below.
                 </Typography>
             </Paper>
 
-            {/* Students List */}
-            <Paper elevation={3} sx={{ padding: 3, maxWidth: '800px', width: '100%' }}>
-                <Typography variant="h5" gutterBottom>Students</Typography>
+            {/* Participants List */}
+            <Paper elevation={3} sx={{ padding: 3, width: '100%', maxWidth: '800px' }}>
+                <Typography variant="h5" gutterBottom>Participants</Typography>
                 <Divider sx={{ marginBottom: 2 }} />
                 <List>
-                    {studentList.map((student, index) => (
-                        <ListItem key={index} sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Box>
-                                <ListItemText primary={student.name} secondary={`ID: ${student.id}`} />
-                                <Typography variant="body2" color={student.remarks !== 'No violations' ? 'red' : 'green'}>
-                                    {student.remarks}
-                                </Typography>
-                            </Box>
-                            <Button
-                                variant="outlined"
-                                color="secondary"
-                                disabled={student.removed}
-                                onClick={() => removeStudent(student.id)}
-                                sx={{ marginLeft: '20px' }}
-                            >
-                                {student.removed ? 'Removed' : 'Remove'}
-                            </Button>
-                        </ListItem>
-                    ))}
+                    {participants && participants.length > 0 ? (
+                        participants.map((participant, index) => (
+                            <ListItem key={index} sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <ListItemText
+                                    primary={`User ID: ${participant.pName}`}
+                                    secondary={`Remarks: ${participant.pEmail}`}
+                                />
+                                <Button variant="outlined" color="secondary" disabled={participant.remarks !== "No Violation"}>
+                                    Remove
+                                </Button>
+                            </ListItem>
+                        ))
+                    ) : (
+                        <Typography variant="body2" color="textSecondary">No participants connected yet.</Typography>
+                    )}
                 </List>
             </Paper>
-
-            {/* See Video Button */}
-            <Button
-                variant="contained"
-                color="primary"
-                onClick={() => navigate(`/live-video/YOUR_QUIZ_ID`)} // Redirect to the video stream page
-                sx={{ marginTop: 2 }}
-            >
-                See Video
-            </Button>
         </Box>
     );
 };
 
-export default QuizMonitor;
+export default QuizQuizMonitor;

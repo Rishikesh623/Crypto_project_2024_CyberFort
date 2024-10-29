@@ -53,6 +53,10 @@ const QuizHistory = () => {
     }
 
     const handleMonitor = async (quizId) => {
+        const res = await getQuiz(quizId);
+        if (res?.error) {
+            alert("Some error occurred");
+        }
         navigate('/dashboard/quiz-monitor');
     }
 

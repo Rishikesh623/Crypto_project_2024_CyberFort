@@ -22,6 +22,7 @@ function Quiz() {
     const maxAllowedSwitches = 3;
     const questions = quiz.questions;
 
+
     const [socket,setSocket] = useState(null);
     useEffect(()=>{
         const newSocket  = io("http://localhost:4000");
@@ -36,7 +37,11 @@ function Quiz() {
     useEffect(() => {
         if(socket==null)   
             return ;
-        socket.emit("addParticipant",user?._id);
+        const pName = user.name;
+        const pEmail = user.email;
+        const quizId = quiz._id;
+
+        socket.emit("joinQuizAsParticipant",{pName,pEmail,quizId});
 
         socket.on("getAlert", (res) => {
             alert(res);
