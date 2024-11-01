@@ -15,37 +15,37 @@ io.on("connection", (socket) => {
     console.log("New socket connection:", socket.id);
 
     //participant joins a specific quiz room - for giving quiz
-    socket.on("joinQuizAsParticipant", ({ pName, pEmail, quizId }) => {
+    socket.on("joinQuizAsParticipant", ({ pid, pName, pEmail, quizId }) => {
         socket.join(quizId); // Join the quiz room
-    
+
         // Initialize participants list if it doesn't exist for this quiz
         if (!quizParticipants[quizId]) {
             quizParticipants[quizId] = [];
         }
-    
+
         // Check if the participant already exists
         const existingParticipantIndex = quizParticipants[quizId].findIndex(
             (participant) => participant.pEmail === pEmail
         );
-    
+
         if (existingParticipantIndex !== -1) {
             // If participant exists, update their socket ID
             quizParticipants[quizId][existingParticipantIndex].socketId = socket.id;
         } else {
             // If not, add the new participant to the quizParticipants array
-            quizParticipants[quizId].push({ pName, pEmail, socketId: socket.id });
+            quizParticipants[quizId].push({ pid, pName, pEmail, socketId: socket.id, blocked: false, submitted: false });
         }
-    
+
         console.log(`User ${pName} joined quiz ${quizId}`);
-        console.log("Online users in quiz:", quizParticipants[quizId]);
-    
+        // console.log("Online users in quiz:", quizParticipants[quizId]);
+
         // Send updated participant list to the quiz creator
         const creatorSocketId = quizCreators[quizId];
         if (creatorSocketId) {
             io.to(creatorSocketId).emit("participantJoined", quizParticipants[quizId]);
         }
     });
-    
+
 
     //creator joins the quiz room - for monitoring 
     socket.on("joinQuizAsCreator", (quizId) => {
@@ -55,8 +55,99 @@ io.on("connection", (socket) => {
 
         console.log(`Creator joined monitor for quiz ${quizId}`);
 
-        io.to(socket.id).emit("participantJoined",quizParticipants[quizId]);
+        io.to(socket.id).emit("participantJoined", quizParticipants[quizId]);
 
+    });
+
+    socket.on("blockParticipant", ({ quizId, pid }) => {
+
+        const existingParticipantIndex = quizParticipants[quizId].findIndex(
+            (participant) => participant.pid === pid
+        );
+
+        quizParticipants[quizId][existingParticipantIndex].blocked = true;
+
+        const creatorSocketId = quizCreators[quizId];
+        const updatedParticipantsList = quizParticipants[quizId];
+
+        if (creatorSocketId) {
+            io.to(creatorSocketId).emit("blockParticipant", { pid, updatedParticipantsList });
+        }
+
+    });
+
+    socket.on("unBlockParticipant", ({ quizId, pid }) => {
+
+        const existingParticipantIndex = quizParticipants[quizId].findIndex(
+            (participant) => participant.pid === pid
+        );
+
+        quizParticipants[quizId][existingParticipantIndex].blocked = false;
+
+    });
+
+    socket.on("submitQuiz", ({ quizId, pid }) => {
+
+        const existingParticipantIndex = quizParticipants[quizId].findIndex(
+            (participant) => participant.pid === pid
+        );
+
+        quizParticipants[quizId][existingParticipantIndex].submitted = true;
+
+        const creatorSocketId = quizCreators[quizId];
+        const updatedParticipantsList = quizParticipants[quizId];
+
+        if (creatorSocketId) {
+            io.to(creatorSocketId).emit("quizSubmitUpdate", { updatedParticipantsList });
+        }
+    });
+
+    // Receive offer from participant and send it to the quiz creator
+    socket.on('offer', (data) => {
+        const quizId = data.quizId;
+        const creatorSocketId = quizCreators[quizId];
+
+        if (creatorSocketId) {
+            io.to(creatorSocketId).emit('receive-offer', { offer: data.offer, pid: data.pid });
+        }
+
+    });
+
+    // Receive answer from quiz creator and send it to the specific participant
+    socket.on('answer', (data) => {
+        let targetSocketId;
+        const pid = data.pid;
+        const existingParticipantIndex = quizParticipants[data.quizId].findIndex(
+            (participant) => participant.pid === pid
+        );
+
+        if (existingParticipantIndex !== -1) {
+            targetSocketId = quizParticipants[data.quizId][existingParticipantIndex].socketId
+        }
+
+        io.to(targetSocketId).emit('receive-answer', { answer: data.answer });
+    });
+
+    // Receive ICE candidates and forward them
+    socket.on('ice-candidate', (data) => {
+        let targetSocketId;
+        if (data.target === 'quiz-creator') {
+            const quizId = data.quizId;
+            targetSocketId = quizCreators[quizId];
+        } else {
+            const pid = data.pid;
+            const existingParticipantIndex = quizParticipants[data.quizId].findIndex(
+                (participant) => participant.pid === pid
+            );
+
+            if (existingParticipantIndex !== -1) {
+                targetSocketId = quizParticipants[data.quizId][existingParticipantIndex].socketId
+            }
+        }
+        
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('receive-ice-candidate', { pid:data.pid, candidate: data.candidate });
+        }
     });
 
     /*

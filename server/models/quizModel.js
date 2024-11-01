@@ -50,7 +50,8 @@ const quizSchema = new mongoose.Schema({
         required:true
     }
     ,
-    participants: [{ type: String, ref: 'User', default: [] }]
+    participants: [{ type: String, ref: 'User', default: [] }],
+    blocked: [{ type: String, ref: 'User', default: [] }]
 },
 {
     timestamps: true

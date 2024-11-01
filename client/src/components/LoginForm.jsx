@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import { Button, Box, Checkbox, FormControlLabel, IconButton, InputAdornment, Link, Stack, TextField } from "@mui/material";
+import { Alert,Button, Box, Checkbox, FormControlLabel, IconButton, InputAdornment, Link, Stack, TextField } from "@mui/material";
 import { motion } from "framer-motion";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
@@ -27,6 +27,8 @@ const LoginForm = () => {
         remember: false,
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState(null);
+
 
     const handleChange = (e) => {
         const { name, value, checked, type } = e.target;
@@ -36,20 +38,21 @@ const LoginForm = () => {
         }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
         
+        const res = await login(formData.email,formData.password,formData.remember);
+        if(res.error){
+            setError(res.message);
+            setIsSubmitting(false);
+            return ;
+        }
+
         // Simulating a submission process
         setTimeout(async () => {
-            const res = await login(formData.email,formData.password,formData.remember);
             setIsSubmitting(false);
-            if(res.error){
-                alert(res?.message);
-                return ;
-            }
             // console.log("Submitted form data: ", formData);
-            
             navigate('../dashboard');
         }, 2000);
     };
@@ -110,6 +113,7 @@ const LoginForm = () => {
                             ),
                         }}
                     />
+                    {error && <Alert severity="error">{error}</Alert>}
                 </Box>
 
                 <Box

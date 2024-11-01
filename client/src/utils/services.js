@@ -54,7 +54,7 @@ export const getRequest = async (url) => {
 export const patchRequest = async (url,body) => {
 
     body = JSON.stringify(body);
-    console.log(url,body);
+    
     const res = await fetch(`http://localhost:5000${url}`,{
         method: "PATCH",
         credentials: "include",

@@ -2,7 +2,8 @@
 const express = require('express');
 const { authMiddleware } = require('../middlewares/authMiddleware');
 const { createQuiz, getQuiz, getCreatedQuizHistory, getGivenQuizzesHistory,
-    updateQuiz, deleteQuiz, submitQuiz, getQuizAndResultDetails, getQuizSummaryResult, getCreatedQuizResults } = require('../controllers/quizController');
+    updateQuiz, deleteQuiz, submitQuiz, getQuizAndResultDetails, getQuizSummaryResult, getCreatedQuizResults,
+    blockUser,unBlockUser } = require('../controllers/quizController');
 
 
 const router = express.Router();
@@ -17,5 +18,7 @@ router.get('/get-created-quiz-history', authMiddleware, getCreatedQuizHistory);
 router.get('/get-given-quiz-history', authMiddleware, getGivenQuizzesHistory);
 router.patch('/update-quiz', authMiddleware, updateQuiz);
 router.delete('/delete-quiz', authMiddleware, deleteQuiz);
+router.patch('/quiz/block-user',blockUser);
+router.patch('/quiz/unblock-user',unBlockUser);
 
 module.exports = router;

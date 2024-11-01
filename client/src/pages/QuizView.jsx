@@ -10,18 +10,16 @@ import {
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuiz } from '../contexts/QuizContext';
+import { useUserContext } from '../contexts/UserContext';
 
 const QuizView = () => {
     const navigate = useNavigate();
+    const { user } = useUserContext();
     const { quiz, result, updateQuiz } = useQuiz();
 
     const [isEditing, setIsEditing] = useState(false);
     const [changes, setChanges] = useState({});
 
-    useEffect(()=>{
-        console.log(new Date().toISOString());
-        console.log(quiz.end_time);
-    },[quiz])
     // Function to format date-time to "yyyy-MM-ddThh:mm"
     function formatDateTime(dateString) {
         const date = new Date(dateString);
@@ -77,10 +75,13 @@ const QuizView = () => {
         setChanges({});
     };
 
+
+    
     return (
         <Box sx={{ background: 'linear-gradient(to right, #ff7e5f, #feb47b)', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <Container maxWidth="md" sx={{ backgroundColor: 'white', borderRadius: 2, padding: 3, boxShadow: 2 }}>
-                <Button
+            <Typography align='right' sx={{ color: 'gray' }}>*Don't reload the page.</Typography>
+            <Button
                     variant="outlined"
                     color="primary"
                     onClick={() => navigate(-1)}
@@ -88,8 +89,8 @@ const QuizView = () => {
                 >
                     Back
                 </Button>
-                
-                {   quiz.end_time>=(  new Date().toISOString()) && 
+
+                {quiz.end_time >= (new Date().toISOString()) && (quiz.created_by === user._id) &&
                     <Button
                         variant="contained"
                         color="secondary"
@@ -99,6 +100,9 @@ const QuizView = () => {
                         {isEditing ? 'Save' : 'Edit Quiz'}
                     </Button>
                 }
+
+
+                
 
                 {/* Quiz Title, Description, Start Time, and End Time */}
                 <Box sx={{ mb: 4, p: 3, backgroundColor: '#f9f9f9', borderRadius: 2, boxShadow: 1 }}>
@@ -188,10 +192,12 @@ const QuizView = () => {
                                     const isCorrect = option === question.correct_option;
                                     const isSelected = option === selectedOption;
                                     const backgroundColor = isCorrect
-                                        ? 'lightgreen'
-                                        : isSelected
+                                        ? (isSelected 
+                                            ?'darkgreen'
+                                            :' lightgreen')
+                                        :( isSelected
                                             ? 'lightcoral'
-                                            : 'transparent';
+                                            : 'transparent');
 
                                     return (
                                         <Box

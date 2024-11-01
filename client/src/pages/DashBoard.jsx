@@ -79,6 +79,13 @@ const DashBoard = ({ selectedOption }) => {
             setShowCustomAlert({ type: "info", title: "Info", message: "You have already participated in this quiz." });
             return;
         }
+
+        //if blocked from the quiz
+        if (res.blocked.includes(user._id)) {
+            setShowCustomAlert({ type: "error", title: "!!!", message: "YOu have been blocked by admin." });
+            return;
+        }
+
         //if within the interval & not submitted , proceed to the quiz
         navigate(`/quiz/${quizId}`);
     };

@@ -129,11 +129,23 @@ export const QuizProvider = ({ children }) => {
         }
         return response;
     }
+
+    const blockParticipant = async (pid,quizId) => {
+        console.log(pid);
+        const response = await patchRequest('/quiz/block-user',{userId : pid,quizId});
+        return response;
+    };
+
+    const unBlockParticipant = async (pid,quizId) => {
+        const response = await patchRequest('/quiz/unblock-user',{userId :pid,quizId});
+        return response;
+    };
+
     return (
         <QuizContext.Provider value={{
             answers, quiz,setQuiz,result,setResult, createdQuizzes, givenQuizzes,
             getQuiz, getCreatedQuizHistory, getGivenQuizHistory, getdetailedQuizResult, getQuizResult,getCreatedQuizResults, selectOption, createQuiz, submitQuiz
-            ,updateQuiz}}>
+            ,updateQuiz,blockParticipant,unBlockParticipant}}>
             {children}
         </QuizContext.Provider>
     );

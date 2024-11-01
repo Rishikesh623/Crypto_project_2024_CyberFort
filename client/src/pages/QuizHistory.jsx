@@ -30,14 +30,14 @@ const QuizHistory = () => {
         if (res?.error) {
             alert("Some error occurred");
         }
-        navigate("../quiz/view-quiz");
+        navigate(`../quiz/view-quiz/${quizId}`);
     }
     const handleViewQuiz_given = async (quizId) => {
         const res = await getdetailedQuizResult(quizId);
         if (res?.error) {
             alert("Some error occurred");
         }
-        navigate("../quiz/view-quiz");
+        navigate(`../quiz/view-quiz/${quizId}`);
     }
 
     const handleViewResult_created = async (quizId) => {
@@ -57,7 +57,7 @@ const QuizHistory = () => {
         if (res?.error) {
             alert("Some error occurred");
         }
-        navigate('/dashboard/quiz-monitor');
+        navigate(`/dashboard/quiz-monitor/${quizId}`);
     }
 
     return (

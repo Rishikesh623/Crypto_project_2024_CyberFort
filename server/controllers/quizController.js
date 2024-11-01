@@ -54,7 +54,7 @@ const createQuiz = async (req, res) => {
         // Get the current key and increment it
         const currentAccessKey = accessKeyDocument.currentKey;
 
-        const encryptedQuestions  = encryptData(JSON.stringify(req.body.questions), secretKey);
+        const encryptedQuestions = encryptData(JSON.stringify(req.body.questions), secretKey);
 
         // console.log(JSON.parse(decryptData(qe,secretKey)));
 
@@ -88,7 +88,12 @@ const getQuiz = async (req, res) => {
 
     try {
         const quiz = await quizModel.findById(req.params.quizId).lean();
-        quiz.questions = JSON.parse(decryptData(quiz.questions,secretKey));
+        if(!quiz){
+            res.status(400).json({ message: 'Wrong quiz Id', error: true });
+            return ;
+        }
+
+        quiz.questions = JSON.parse(decryptData(quiz.questions, secretKey));
         res.status(200).json(quiz);
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
@@ -103,7 +108,7 @@ const getCreatedQuizHistory = async (req, res) => {
             { id: 1, title: 1, end_time: 1 } // Project only required fields
         ).sort({ end_time: -1 }); // Sort by the creation date, newest first
 
-        
+
 
         res.status(200).json(quizzes);
     } catch (error) {
@@ -135,11 +140,11 @@ const getGivenQuizzesHistory = async (req, res) => {
 
 // update Quiz
 const updateQuiz = async (req, res) => {
-    const { quizId, changes} = req.body;
+    const { quizId, changes } = req.body;
 
     try {
         const quiz = await quizModel.findById(quizId);
-        
+
         if (!quiz || quiz.created_by.toString() !== req.user._id) {
             return res.status(404).json({ message: 'Quiz not found or unauthorized' });
         }
@@ -152,9 +157,9 @@ const updateQuiz = async (req, res) => {
 
         await quiz.save();
 
-        quiz.questions = JSON.parse(decryptData(quiz.questions,secretKey));
+        quiz.questions = JSON.parse(decryptData(quiz.questions, secretKey));
 
-        res.status(200).json({ message: 'Quiz updated successfully'});
+        res.status(200).json({ message: 'Quiz updated successfully' });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
@@ -274,6 +279,7 @@ const getQuizSummaryResult = async (req, res) => {
 
         // send summarized result details
         res.status(200).json({
+            quiz_id : quizId,
             quiz_title: quiz.title,
             total_correct: result.total_correct,
             total_questions: result.total_questions,
@@ -302,11 +308,11 @@ const getCreatedQuizResults = async (req, res) => {
         let totalQuestions = 0;
         const participants = await Promise.all(
             result.map(async (p) => {
-                const user = await userModel.findOne({ _id: p.user_id }).select('name'); 
-                if(totalQuestions===0){
-                    totalQuestions=p._doc.total_questions;
+                const user = await userModel.findOne({ _id: p.user_id }).select('name');
+                if (totalQuestions === 0) {
+                    totalQuestions = p._doc.total_questions;
                 }
-                p._doc.name = user.name; 
+                p._doc.name = user.name;
                 delete p._doc.user_id;
                 delete p._doc._id;
                 delete p._doc.total_questions;
@@ -330,7 +336,44 @@ const getCreatedQuizResults = async (req, res) => {
     }
 };
 
+const blockUser = async (req, res) => {
+    try {
+        const { quizId, userId } = req.body;
+
+        const quiz = await quizModel.findById(quizId);
+
+        quiz.blocked = quiz.blocked || [];
+        quiz.blocked.push(userId);
+
+        await quiz.save();
+
+        res.status(201).json({ message: 'user blocked successfully' });
+
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+const unBlockUser = async (req, res) => {
+    try {
+        const { quizId, userId } = req.body;
+
+        const quiz = await quizModel.findOneAndUpdate(
+            { _id : quizId },
+            { $pull: { blocked: userId } }
+          );
+
+        await quiz.save();
+
+        res.status(201).json({ message: 'user unblocked successfully' });
+
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+
 module.exports = {
     createQuiz, getQuiz, getCreatedQuizHistory, getGivenQuizzesHistory, updateQuiz, deleteQuiz, submitQuiz,
-    getQuizAndResultDetails, getQuizSummaryResult, getCreatedQuizResults
+    getQuizAndResultDetails, getQuizSummaryResult, getCreatedQuizResults, blockUser, unBlockUser
 };

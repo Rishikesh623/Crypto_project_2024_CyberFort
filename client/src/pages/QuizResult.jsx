@@ -2,12 +2,13 @@ import React from 'react';
 import { Box, Typography, Card, CardContent, Button, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 import { CheckCircle, CalendarToday, QuestionAnswer, AccessTime } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useQuiz } from '../contexts/QuizContext';
 
 
 
 const CreatedQuizResults = ({resultData}) => {
     const navigate = useNavigate();
-    console.log(resultData);
+    // console.log(resultData);
 
     const { title, datetime, totalQuestions, participantsCount, participants } = resultData;
 
@@ -62,6 +63,16 @@ const CreatedQuizResults = ({resultData}) => {
 };
 const GivenQuizResults = ({resultData}) => {
     const navigate = useNavigate();
+    const {getdetailedQuizResult} = useQuiz();
+
+    const handleViewQuiz_given = async () => {
+        const quizId = resultData.quiz_id;
+        const res = await getdetailedQuizResult(quizId);
+        if (res?.error) {
+            alert("Some error occurred");
+        }
+        navigate(`../quiz/view-quiz/${quizId}`);
+    }
 
     return (
         <Box sx={{ padding: 2, backgroundColor: 'transparent', mb: 3 }}>
@@ -127,7 +138,7 @@ const GivenQuizResults = ({resultData}) => {
             <Typography variant="body2" sx={{ mt: 2, textAlign: 'center', color: '#555' }}>
                 NOTE: To see detailed results, go to the
                 <Button
-                    onClick={() => navigate('/quiz/view-quiz')}
+                    onClick={handleViewQuiz_given}
                     color="primary"
                     sx={{ textDecoration: 'underline', ml: 0.5 }}
                 >

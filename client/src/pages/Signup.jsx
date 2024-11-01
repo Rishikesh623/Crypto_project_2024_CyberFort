@@ -46,7 +46,7 @@ const fadeInUp = {
   },
 };
 
-const Login = ({ setAuth }) => {
+const Register = ({ setAuth }) => {
   return (
     <RootStyle>
       <Container maxWidth="sm">
@@ -90,4 +90,4 @@ const Login = ({ setAuth }) => {
   );
 };
 
-export default Login;
+export default Register;

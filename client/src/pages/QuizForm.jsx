@@ -72,7 +72,7 @@ const QuizForm = () => {
         const res = createQuiz(quizData);
         if(!res.error){
             alert("Quiz created successfully");
-            navigate("/dashboard/quiz-monitor")
+            navigate(`/dashboard/quiz-history`)
         }else{
             alert("Error occurred");
         }

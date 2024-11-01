@@ -64,25 +64,35 @@ const Profile = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [profileData, setProfileData] = useState(null);
     const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
+    const [changes, setChanges] = useState({});
 
     useEffect(() => {
         if (user) {
-            setProfileData(user);
+            setProfileData({ ...user }); // Ensure a new object is created
         }
     }, [user]);
 
     const handleEdit = () => {
         setIsEditing(!isEditing);
+        setChanges({}); // Reset changes when toggling edit mode
     };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setProfileData((prevData) => ({ ...prevData, [name]: value }));
+        setChanges((prevChanges) => ({
+            ...prevChanges,
+            [name]: value
+        }));
     };
 
     const handleSave = () => {
-        editUserProfile(profileData);
-        setIsEditing(false);
+        if (Object.keys(changes).length > 0) {
+            editUserProfile(changes); // Save only modified fields
+            setIsEditing(false);
+        } else {
+            alert("No changes to save.");
+        }
     };
 
     const handleOpenChangePasswordModal = () => {
@@ -118,10 +128,10 @@ const Profile = () => {
                             variant="outlined"
                             fullWidth
                             name="name"
-                            value={profileData.name || ''}
+                            defaultValue={profileData.name}
                             onChange={handleChange}
                             disabled={!isEditing}
-                            InputProps={{ style: { backgroundColor: '#fff' } }}
+                            InputProps={{ style: { backgroundColor: isEditing ? '#fff' : '#f0f0f0' } }}
                         />
                     </Grid>
                     <Grid item xs={12} sm={6}>
@@ -130,10 +140,10 @@ const Profile = () => {
                             variant="outlined"
                             fullWidth
                             name="id"
-                            value={profileData.id || ''}
+                            defaultValue={profileData.id}
                             disabled
                             InputLabelProps={{ shrink: true }}
-                            InputProps={{ style: { backgroundColor: '#fff' } }}
+                            InputProps={{ style: { backgroundColor: '#f0f0f0' } }}
                         />
                     </Grid>
                     <Grid item xs={12} sm={6}>
@@ -142,11 +152,11 @@ const Profile = () => {
                             variant="outlined"
                             fullWidth
                             name="email"
-                            value={profileData.email || ''}
+                            defaultValue={profileData.email}
                             onChange={handleChange}
                             disabled={!isEditing}
                             InputLabelProps={{ shrink: true }}
-                            InputProps={{ style: { backgroundColor: '#fff' } }}
+                            InputProps={{ style: { backgroundColor: isEditing ? '#fff' : '#f0f0f0' } }}
                         />
                     </Grid>
                     <Grid item xs={12} sm={6}>
@@ -168,10 +178,11 @@ const Profile = () => {
                             name="about"
                             multiline
                             rows={4}
-                            value={profileData.about || ''}
+                            defaultValue={profileData.about}
                             onChange={handleChange}
                             disabled={!isEditing}
                             InputLabelProps={{ shrink: true }}
+                            InputProps={{ style: { backgroundColor: isEditing ? '#fff' : '#f0f0f0' } }}
                         />
                     </Grid>
                     <Grid item xs={12}>
@@ -180,11 +191,11 @@ const Profile = () => {
                             variant="outlined"
                             fullWidth
                             name="extraField"
-                            value={profileData.extraField || ''}
+                            defaultValue={profileData.extraField || ''}
                             onChange={handleChange}
                             disabled={!isEditing}
                             InputLabelProps={{ shrink: true }}
-                            InputProps={{ style: { backgroundColor: '#fff' } }}
+                            InputProps={{ style: { backgroundColor: isEditing ? '#fff' : '#f0f0f0' } }}
                         />
                     </Grid>
                 </Grid>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
-import { Button, Box, IconButton, InputAdornment, TextField } from "@mui/material";
+import { Alert,Button, Box, IconButton, InputAdornment, TextField } from "@mui/material";
 import { motion } from "framer-motion";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
@@ -19,7 +19,7 @@ const animate = {
 
 const RegisterForm = () => {
     const navigate = useNavigate();
-    const {register} = useUserContext();
+    const {register,getPasswordStrength} = useUserContext();
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
         username:"",
@@ -27,6 +27,8 @@ const RegisterForm = () => {
         password: "",
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState(null);
+    const [passwordStrength, setPasswordStrength] = useState('');
 
     const handleChange = (e) => {
         const { name, value, checked, type } = e.target;
@@ -34,16 +36,25 @@ const RegisterForm = () => {
             ...prev,
             [name]: type === "checkbox" ? checked : value,
         }));
+        if(name==="password"){
+            const strength = getPasswordStrength(value);
+            setPasswordStrength(strength);
+        }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        setIsSubmitting(true);
-        console.log(formData);
+        
+        // console.log(formData);
+        const res = await register(formData.username,formData.email,formData.password);
+        // console.log(res);
+        if(res?.error){
+            setError(res.message);
+            return;
+        }
 
+        setIsSubmitting(true);
         setTimeout(() => {
-            register(formData.username,formData.email,formData.password);
-            // console.log("Submitted form data: ", formData);
             setIsSubmitting(false);
             navigate('../dashboard');
         }, 2000);
@@ -88,7 +99,7 @@ const RegisterForm = () => {
                         fullWidth
                         autoComplete="current-password"
                         type={showPassword ? "text" : "password"}
-                        label="Password"
+                        label={` ${passwordStrength} Password `}
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
@@ -108,6 +119,7 @@ const RegisterForm = () => {
                             ),
                         }}
                     />
+                    {error && <Alert severity="error">{error}</Alert>}
                 </Box>
 
                 <Box
