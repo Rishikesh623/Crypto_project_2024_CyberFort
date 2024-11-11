@@ -1,70 +1,141 @@
-# Getting Started with Create React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# FortiQuiz
 
-## Available Scripts
+FortiQuiz is a secure and proctored online quiz application built using the MERN stack (MongoDB, Express, React, and Node.js). Designed for educational institutions, corporate training programs, and professional certification exams, FortiQuiz ensures a secure and integrity-driven assessment experience. This project integrates real-time monitoring, proctoring features, and user-friendly quiz management, making it an all-in-one solution for online testing.
 
-In the project directory, you can run:
+## Table of Contents
 
-### `npm start`
+- [Features](#features)
+- [Technologies Used](#technologies-used)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Project Structure](#project-structure)
+- [Security Features](#security-features)
+- [Proctoring Features](#proctoring-features)
+- [License](#license)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Features
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+1. **User Authentication**: Secure sign-up and login with JWT-based authentication.
+2. **Quiz Management**: Quiz creation, editing, and tracking functionalities for quiz creators.
+3. **Real-Time Video Monitoring**: Enables live video feeds for proctoring during quizzes.
+4. **Proctoring Dashboard**: Provides quiz creators with real-time participant monitoring, including rule violation tracking.
+5. **Participant Rules Enforcement**: Includes tab-switch detection, session security, and encrypted question data to prevent cheating.
+6. **Quiz History**: Allows users to view past quizzes, results, and performance summaries.
+7. **Session Security**: Features session timeouts, IP logging, and anomaly detection for added security.
 
-### `npm test`
+## Technologies Used
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- **Frontend**: **React**, HTML, CSS
+- **Backend**: **Node.js**, **Express.js**
+- **Database**: **MongoDB**
+- **Real-Time Communication**: **WebRTC** (for video streaming) and **Socket.IO** (for signaling)
+- **Security**: **JWT** for authentication, **bcrypt** for password hashing, **AES** encryption for sensitive data
 
-### `npm run build`
+## Installation
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+To get started with FortiQuiz on your local environment, follow these steps:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Prerequisites
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- **Node.js** (version 14.x or later)
+- **MongoDB** (running locally or a MongoDB cloud instance)
 
-### `npm run eject`
+### Steps
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/your-username/fortiquiz.git
+   cd fortiquiz
+   ```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+2. **Install Dependencies**:
+   - Install backend dependencies:
+     ```bash
+     cd server
+     npm install
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+     cd ../socket
+     npm install 
+     ```
+   - Install frontend dependencies:
+     ```bash
+     cd ../client
+     npm install
+     ```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+3. **Environment Variables**:
+   Create a `.env` file in the `backend` directory with the following variables:
 
-## Learn More
+   ```plaintext
+   PORT=5000
+   MONGODB_URI=your_mongodb_connection_string
+   JWT_SECRET=your_jwt_secret
+   SOCKET_PORT=4000
+   ```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+4. **Run the Application**:
+   - Start the backend server:
+     ```bash
+     cd server
+     nodemon server.js
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+     cd ../socket
+     nodmeon
+     ```
+   - Start the frontend server:
+     ```bash
+     cd ../client
+     npm start
+     ```
 
-### Code Splitting
+   The backend will run on `http://localhost:5000` for server && `http://localhost:4000` for socket and the frontend on `http://localhost:3000`.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## Usage
 
-### Analyzing the Bundle Size
+1. **Sign Up**: Register as a new user and log in to access quiz management features.
+2. **Create a Quiz**: Navigate to the dashboard, click on "Create Quiz," and customize the quiz details, such as questions and time limits.
+3. **Start Quiz & Monitor**: Initiate the quiz and monitor participants in real-time through the proctoring dashboard.
+4. **Review Results**: Access quiz history to view results, rule violations, and participant performance summaries.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Project Structure
 
-### Making a Progressive Web App
+```
+FortiQuiz/
+├── client/               # Frontend code (React application)
+│   ├── src/
+│   │   ├── components/   # React components (UI elements, quiz management, proctoring)
+│   │   ├── context/      # Context API for state management
+│   │   ├── services/     # API service functions
+│   │   └── pages/       # Socket.IO client-side configuration and events
+├── server/               # Backend code (Express server, authentication, and quiz API)
+│   ├── models/           # MongoDB models (User, Quiz, Results)
+│   ├── routes/           # API routes
+│   ├── controllers/      # Controllers for request handling
+│   ├── middlewares/            # Utility functions - authentication middleware
+│   └── server.js         # Main server file to initialize the Express server and Socket.IO
+├── socket/               # Socket.IO server-side configuration for real-time communication
+│   └── index.js          # Main file for handling Socket.IO events and connections
+├── .gitignore            # Git ignore file to exclude unnecessary files from version control
+└── README.md             # Project README file
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+```
 
-### Advanced Configuration
+## Security Features
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+- **AES Encryption**: Quiz questions are encrypted before storage, ensuring data security at rest.
+- **JWT Authentication**: Users are authenticated using JSON Web Tokens, providing secure access without repeated login prompts.
+- **Password Hashing**: User passwords are hashed with bcrypt, protecting against password theft.
+- **Session Security**: IP logging and session timeouts provide enhanced control over user sessions and detect unusual access patterns.
+- **Tab-Switch Detection**: Any attempt by participants to switch tabs is logged, ensuring focus remains on the quiz page.
 
-### Deployment
+## Proctoring Features
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+- **Real-Time Video Feed**: Using WebRTC and Socket.IO, quiz creators can watch participants in real time to prevent cheating.
+- **Participant Monitoring Dashboard**: Displays session details, violations, and remaining time for each participant.
+- **Manual Removal Option**: Quiz creators can remove participants from the session if they detect cheating or policy violations.
 
-### `npm run build` fails to minify
+## License
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
+
